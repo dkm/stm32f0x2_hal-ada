@@ -1,0 +1,17 @@
+name = "stm32f0x2_hal"
+description = "Drivers (maybe) and HAL for stm32f0x2 mcu family"
+version = "0.0.0"
+
+authors = ["Marc Poulhiès"]
+maintainers = ["Marc Poulhiès <dkm@kataplop.net>"]
+maintainers-logins = ["dkm"]
+
+[[depends-on]]  # Added by alr
+cortex_m = "~0.3"
+hal = "~0.3"
+##usb_embedded = { path='../usb_embedded' }
+usb_embedded = "~0.2"
+gnat_arm_elf = "^11.2"
+
+[configuration.variables]
+Use_Startup = {type = "Boolean", default = true}
