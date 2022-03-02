@@ -1,0 +1,5 @@
+with STM32.GPIO;  use STM32.GPIO;
+
+package STM32.SYSCFG is
+
+end STM32.SYSCFG;
