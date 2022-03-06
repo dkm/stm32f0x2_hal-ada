@@ -4,6 +4,22 @@ with STM32_SVD.RCC; use STM32_SVD.RCC;
 
 package body STM32.Device is
 
+   HSE_VALUE : constant := 0; -- FIXME  ADL_Config.High_Speed_External_Clock;
+   --  External oscillator in Hz
+
+   HSI_VALUE : constant := 16_000_000;
+   --  Internal oscillator in Hz
+
+   HSI48_VALUE : constant := 48_000_000;
+   --  internal oscillator in Hz
+
+   HPRE_Presc_Table : constant array (UInt4) of UInt32 :=
+     (1, 1, 1, 1, 1, 1, 1, 1, 2, 4, 8, 16, 64, 128, 256, 512);
+
+   PPRE_Presc_Table : constant array (UInt3) of UInt32 :=
+     (1, 1, 1, 1, 2, 4, 8, 16);
+
+
    ------------------------------
    -- GPIO_Port_Representation --
    ------------------------------
@@ -135,5 +151,102 @@ package body STM32.Device is
          end if;
       end loop;
    end Reset;
+
+   ------------------------------
+   -- System_Clock_Frequencies --
+   ------------------------------
+
+   function System_Clock_Frequencies return RCC_System_Clocks
+   is
+      Source       : constant UInt2 := RCC_Periph.CFGR.SWS;
+      Result       : RCC_System_Clocks;
+   begin
+
+      case Source is
+         when 0 =>
+            --  HSI as source
+            Result.SYSCLK := HSI_VALUE;
+         when 1 =>
+            --  HSE as source
+            Result.SYSCLK := HSE_VALUE;
+         when 2 =>
+            --  PLL as source
+            declare
+               Input_Source : constant Uint2 := RCC_Periph.CFGR.PLLSRC;
+               Prediv       : constant UInt32 :=
+                 UInt32 (RCC_Periph.CFGR2.PREDIV);
+               Pllmul       : constant
+                 UInt32 :=
+                   UInt32 (RCC_Periph.CFGR.PLLMUL);
+               Pllval : UInt32 := HSI_VALUE;
+            begin
+               case Input_Source is
+               when 0 =>
+                  Pllval := HSI_VALUE / 2;
+               when 1 =>
+                  Pllval := HSI_VALUE / Prediv;
+               when 2 =>
+                  Pllval := HSE_VALUE / Prediv;
+               when 3 =>
+                  Pllval := HSI48_VALUE / Prediv;
+               end case;
+
+               Pllval := Pllval * Pllmul;
+
+               Result.SYSCLK := Pllval;
+            end;
+         when 3 =>
+            Result.SYSCLK := HSI48_VALUE;
+         when others =>
+            Result.SYSCLK := HSI_VALUE;
+      end case;
+
+      --  declare
+      --     HPRE  : constant UInt4 := RCC_Periph.CFGR.HPRE;
+      --     PPRE1 : constant UInt3 := RCC_Periph.CFGR.PPRE.Arr (1);
+      --     PPRE2 : constant UInt3 := RCC_Periph.CFGR.PPRE.Arr (2);
+      --  begin
+      --     Result.HCLK  := Result.SYSCLK / HPRE_Presc_Table (HPRE);
+      --     Result.PCLK1 := Result.HCLK / PPRE_Presc_Table (PPRE1);
+      --     Result.PCLK2 := Result.HCLK / PPRE_Presc_Table (PPRE2);
+
+      --     --  Timer clocks
+      --     --  If the APB prescaler (PPRE1, PPRE2 in the RCC_CFGR register)
+      --     --  is configured to a division factor of 1, TIMxCLK = PCLKx.
+      --     --  Otherwise, the timer clock frequencies are set to twice to the
+      --     --  frequency of the APB domain to which the timers are connected :
+      --     --  TIMxCLK = 2xPCLKx.
+      --     if PPRE_Presc_Table (PPRE1) = 1 then
+      --        Result.TIMCLK1 := Result.PCLK1;
+      --     else
+      --        Result.TIMCLK1 := Result.PCLK1 * 2;
+      --     end if;
+      --     if PPRE_Presc_Table (PPRE2) = 1 then
+      --        Result.TIMCLK2 := Result.PCLK2;
+      --     else
+      --        Result.TIMCLK2 := Result.PCLK2 * 2;
+      --     end if;
+      --  end;
+
+      -- I2S Clock --
+
+      --  if RCC_Periph.CFGR.I2SSRC then
+      --     --  External clock source
+      --     Result.I2SCLK := 0;
+      --     raise Program_Error with "External I2S clock value is unknown";
+      --  else
+      --     --  Pll clock source
+      --     declare
+      --        Plli2sn : constant UInt32 :=
+      --          UInt32 (RCC_Periph.PLLI2SCFGR.PLLI2SNx);
+      --        Plli2sr : constant UInt32
+      --          := UInt32 (RCC_Periph.PLLI2SCFGR.PLLI2SRx);
+      --     begin
+      --        Result.I2SCLK := (Result.I2SCLK * Plli2sn) / Plli2sr;
+      --     end;
+      --  end if;
+
+      return Result;
+   end System_Clock_Frequencies;
 
 end STM32.Device;

@@ -200,12 +200,12 @@ package STM32.Device is
 
    type RCC_System_Clocks is record
       SYSCLK  : UInt32;
-      HCLK    : UInt32;
-      PCLK    : UInt32;
+      HCLK    : UInt32;  --  AHB clock
+      PCLK    : UInt32;  --  APB clock
       CRS     : UInt32;
    end record;
 
-   --  function System_Clock_Frequencies return RCC_System_Clocks;
+   function System_Clock_Frequencies return RCC_System_Clocks;
 
 --   RTC : aliased RTC_Device;
 
