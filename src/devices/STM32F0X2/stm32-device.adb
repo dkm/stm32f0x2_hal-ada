@@ -68,7 +68,6 @@ package body STM32.Device is
       end if;
    end Enable_Clock;
 
-
    ------------------
    -- Enable_Clock --
    ------------------
@@ -151,6 +150,50 @@ package body STM32.Device is
          end if;
       end loop;
    end Reset;
+
+
+   ------------------
+   -- Enable_Clock --
+   ------------------
+
+   procedure Enable_Clock (This : aliased in out USART) is
+   begin
+      if This.Periph.all'Address = USART1_Base then
+         RCC_Periph.APB2ENR.USART1EN := True;
+      elsif This.Periph.all'Address = USART2_Base then
+         RCC_Periph.APB1ENR.USART2EN := True;
+      elsif This.Periph.all'Address = USART3_Base then
+         RCC_Periph.APB1ENR.USART3EN := True;
+      elsif This.Periph.all'Address = USART4_Base then
+         RCC_Periph.APB1ENR.USART4EN := True;
+      else
+         raise Unknown_Device;
+      end if;
+   end Enable_Clock;
+
+   -----------
+   -- Reset --
+   -----------
+
+   procedure Reset (This : aliased in out USART) is
+   begin
+      if This.Periph.all'Address = USART1_Base then
+         RCC_Periph.APB2RSTR.USART1RST := True;
+         RCC_Periph.APB2RSTR.USART1RST := False;
+      elsif This.Periph.all'Address = USART2_Base then
+         RCC_Periph.APB1RSTR.USART2RST := True;
+         RCC_Periph.APB1RSTR.USART2RST := False;
+      elsif This.Periph.all'Address = USART3_Base then
+         RCC_Periph.APB1RSTR.USART3RST := True;
+         RCC_Periph.APB1RSTR.USART3RST := False;
+      elsif This.Periph.all'Address = USART4_Base then
+         RCC_Periph.APB1RSTR.USART4RST := True;
+         RCC_Periph.APB1RSTR.USART4RST := False;
+      else
+         raise Unknown_Device;
+      end if;
+   end Reset;
+
 
    ------------------------------
    -- System_Clock_Frequencies --
