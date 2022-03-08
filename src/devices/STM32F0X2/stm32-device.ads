@@ -150,7 +150,20 @@ package STM32.Device is
    PF9  : aliased GPIO_Point := (GPIO_F'Access, Pin_9);
    PF10 : aliased GPIO_Point := (GPIO_F'Access, Pin_10);
 
-   GPIO_AF_USART1_0    : constant GPIO_Alternate_Function;
+
+   GPIO_A_AF_USART1_0    : constant GPIO_Alternate_Function; 
+   GPIO_A_AF_USART2_0    : constant GPIO_Alternate_Function; 
+   GPIO_B_AF_USART1_0    : constant GPIO_Alternate_Function; 
+   GPIO_C_AF_USART4_0    : constant GPIO_Alternate_Function; 
+   GPIO_D_AF_USART2_0    : constant GPIO_Alternate_Function; 
+   GPIO_D_AF_USART3_0    : constant GPIO_Alternate_Function; 
+
+   GPIO_C_AF_USART3_0    : constant GPIO_Alternate_Function; 
+   GPIO_A_AF_USART4_4    : constant GPIO_Alternate_Function; 
+   GPIO_B_AF_USART4_4    : constant GPIO_Alternate_Function; 
+   GPIO_B_AF_USART3_4    : constant GPIO_Alternate_Function; 
+
+
    GPIO_AF_RTC_50Hz_0  : constant GPIO_Alternate_Function;
    GPIO_AF_MCO_0       : constant GPIO_Alternate_Function;
    GPIO_AF_TAMPER_0    : constant GPIO_Alternate_Function;
@@ -158,7 +171,7 @@ package STM32.Device is
    GPIO_AF_TRACE_0     : constant GPIO_Alternate_Function;
    GPIO_AF_TIM1_1      : constant GPIO_Alternate_Function;
    GPIO_AF_TIM2_1      : constant GPIO_Alternate_Function;
-   GPIO_AF_USART2_2    : constant GPIO_Alternate_Function;
+
    GPIO_AF_TIM3_2      : constant GPIO_Alternate_Function;
    GPIO_AF_TIM4_2      : constant GPIO_Alternate_Function;
    GPIO_AF_TIM5_2      : constant GPIO_Alternate_Function;
@@ -166,8 +179,8 @@ package STM32.Device is
    GPIO_AF_TIM9_3      : constant GPIO_Alternate_Function;
    GPIO_AF_TIM10_3     : constant GPIO_Alternate_Function;
    GPIO_AF_TIM11_3     : constant GPIO_Alternate_Function;
-   GPIO_AF_USART3_4    : constant GPIO_Alternate_Function;
-   GPIO_AF_USART4_4    : constant GPIO_Alternate_Function;
+
+
    GPIO_AF_I2C1_4      : constant GPIO_Alternate_Function;
    GPIO_AF_I2C2_4      : constant GPIO_Alternate_Function;
    GPIO_AF_I2C3_4      : constant GPIO_Alternate_Function;
@@ -225,7 +238,13 @@ package STM32.Device is
 
 private
 
-   GPIO_AF_USART1_0    : constant GPIO_Alternate_Function := 0;
+   GPIO_A_AF_USART1_0    : constant GPIO_Alternate_Function := 0;
+   GPIO_A_AF_USART2_0    : constant GPIO_Alternate_Function := 0;
+   GPIO_B_AF_USART1_0    : constant GPIO_Alternate_Function := 0;
+   GPIO_C_AF_USART4_0    : constant GPIO_Alternate_Function := 0;
+   GPIO_D_AF_USART2_0    : constant GPIO_Alternate_Function := 0;
+   GPIO_D_AF_USART3_0    : constant GPIO_Alternate_Function := 0;
+
    GPIO_AF_RTC_50Hz_0  : constant GPIO_Alternate_Function := 0;
    GPIO_AF_MCO_0       : constant GPIO_Alternate_Function := 0;
    GPIO_AF_TAMPER_0    : constant GPIO_Alternate_Function := 0;
@@ -233,16 +252,21 @@ private
    GPIO_AF_TRACE_0     : constant GPIO_Alternate_Function := 0;
    GPIO_AF_TIM1_1      : constant GPIO_Alternate_Function := 1;
    GPIO_AF_TIM2_1      : constant GPIO_Alternate_Function := 1;
-   GPIO_AF_USART2_2    : constant GPIO_Alternate_Function := 2;
+
    GPIO_AF_TIM3_2      : constant GPIO_Alternate_Function := 2;
    GPIO_AF_TIM4_2      : constant GPIO_Alternate_Function := 2;
    GPIO_AF_TIM5_2      : constant GPIO_Alternate_Function := 2;
+
+   GPIO_C_AF_USART3_0    : constant GPIO_Alternate_Function := 3;
    GPIO_AF_TIM8_3      : constant GPIO_Alternate_Function := 3;
    GPIO_AF_TIM9_3      : constant GPIO_Alternate_Function := 3;
    GPIO_AF_TIM10_3     : constant GPIO_Alternate_Function := 3;
    GPIO_AF_TIM11_3     : constant GPIO_Alternate_Function := 3;
-   GPIO_AF_USART3_4    : constant GPIO_Alternate_Function := 4;
-   GPIO_AF_USART4_4    : constant GPIO_Alternate_Function := 4;
+
+   GPIO_A_AF_USART4_4    : constant GPIO_Alternate_Function := 4;
+   GPIO_B_AF_USART4_4    : constant GPIO_Alternate_Function := 4;
+   GPIO_B_AF_USART3_4    : constant GPIO_Alternate_Function := 4;
+
    GPIO_AF_I2C1_4      : constant GPIO_Alternate_Function := 4;
    GPIO_AF_I2C2_4      : constant GPIO_Alternate_Function := 4;
    GPIO_AF_I2C3_4      : constant GPIO_Alternate_Function := 4;
@@ -254,10 +278,7 @@ private
    GPIO_AF_I2S3_6      : constant GPIO_Alternate_Function := 6;
    GPIO_AF_I2Sext_6    : constant GPIO_Alternate_Function := 6;
    GPIO_AF_I2S3ext_7   : constant GPIO_Alternate_Function := 7;
-   GPIO_AF_USART3_7    : constant GPIO_Alternate_Function := 7;
-   GPIO_AF_UART4_8     : constant GPIO_Alternate_Function := 8;
-   GPIO_AF_UART5_8     : constant GPIO_Alternate_Function := 8;
-   GPIO_AF_USART6_8    : constant GPIO_Alternate_Function := 8;
+
    GPIO_AF_CAN1_9      : constant GPIO_Alternate_Function := 9;
    GPIO_AF_CAN2_9      : constant GPIO_Alternate_Function := 9;
    GPIO_AF_TIM12_9     : constant GPIO_Alternate_Function := 9;
