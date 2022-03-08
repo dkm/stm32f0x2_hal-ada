@@ -136,7 +136,7 @@ package body STM32.USARTs is
    procedure Set_Baud_Rate (This : in out USART; To : Baud_Rates)
    is
       --  Clock        : constant UInt32 := APB_Clock (This);
-      Clock        : constant UInt32 := 10; --  FIXME this is not going to work
+      Clock        : constant UInt32 := 41_000_000; --  FIXME this is not going to work
       Over_By_8    : constant Boolean := This.Periph.CR1.OVER8;
       Int_Scale    : constant UInt32 := (if Over_By_8 then 2 else 4);
       Int_Divider  : constant UInt32 := (25 * Clock) / (Int_Scale * To);
