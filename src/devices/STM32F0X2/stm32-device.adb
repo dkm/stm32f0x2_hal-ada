@@ -4,10 +4,12 @@ with STM32_SVD.RCC; use STM32_SVD.RCC;
 
 package body STM32.Device is
 
-   HSE_VALUE : constant := 0; -- FIXME  ADL_Config.High_Speed_External_Clock;
+   --  FIXME  ADL_Config.High_Speed_External_Clock;
+   --  No board, so no ADL_Config
+   HSE_VALUE : constant := 0;
    --  External oscillator in Hz
 
-   HSI_VALUE : constant := 16_000_000;
+   HSI_VALUE : constant := 8_000_000;
    --  Internal oscillator in Hz
 
    HSI48_VALUE : constant := 48_000_000;
@@ -244,32 +246,30 @@ package body STM32.Device is
             Result.SYSCLK := HSI_VALUE;
       end case;
 
-      --  declare
-      --     HPRE  : constant UInt4 := RCC_Periph.CFGR.HPRE;
-      --     PPRE1 : constant UInt3 := RCC_Periph.CFGR.PPRE.Arr (1);
-      --     PPRE2 : constant UInt3 := RCC_Periph.CFGR.PPRE.Arr (2);
-      --  begin
-      --     Result.HCLK  := Result.SYSCLK / HPRE_Presc_Table (HPRE);
-      --     Result.PCLK1 := Result.HCLK / PPRE_Presc_Table (PPRE1);
-      --     Result.PCLK2 := Result.HCLK / PPRE_Presc_Table (PPRE2);
+      declare
+         HPRE  : constant UInt4 := RCC_Periph.CFGR.HPRE;
+         PPRE : constant UInt3 := RCC_Periph.CFGR.PPRE;
+      begin
+         Result.HCLK  := Result.SYSCLK / HPRE_Presc_Table (HPRE);
+         Result.PCLK := Result.HCLK / PPRE_Presc_Table (PPRE);
 
-      --     --  Timer clocks
-      --     --  If the APB prescaler (PPRE1, PPRE2 in the RCC_CFGR register)
-      --     --  is configured to a division factor of 1, TIMxCLK = PCLKx.
-      --     --  Otherwise, the timer clock frequencies are set to twice to the
-      --     --  frequency of the APB domain to which the timers are connected :
-      --     --  TIMxCLK = 2xPCLKx.
-      --     if PPRE_Presc_Table (PPRE1) = 1 then
-      --        Result.TIMCLK1 := Result.PCLK1;
-      --     else
-      --        Result.TIMCLK1 := Result.PCLK1 * 2;
-      --     end if;
-      --     if PPRE_Presc_Table (PPRE2) = 1 then
-      --        Result.TIMCLK2 := Result.PCLK2;
-      --     else
-      --        Result.TIMCLK2 := Result.PCLK2 * 2;
-      --     end if;
-      --  end;
+         --  --  Timer clocks
+         --  --  If the APB prescaler (PPRE1, PPRE2 in the RCC_CFGR register)
+         --  --  is configured to a division factor of 1, TIMxCLK = PCLKx.
+         --  --  Otherwise, the timer clock frequencies are set to twice to the
+         --  --  frequency of the APB domain to which the timers are connected :
+         --  --  TIMxCLK = 2xPCLKx.
+         --  if PPRE_Presc_Table (PPRE1) = 1 then
+         --     Result.TIMCLK1 := Result.PCLK1;
+         --  else
+         --     Result.TIMCLK1 := Result.PCLK1 * 2;
+         --  end if;
+         --  if PPRE_Presc_Table (PPRE2) = 1 then
+         --     Result.TIMCLK2 := Result.PCLK2;
+         --  else
+         --     Result.TIMCLK2 := Result.PCLK2 * 2;
+         --  end if;
+      end;
 
       -- I2S Clock --
 
