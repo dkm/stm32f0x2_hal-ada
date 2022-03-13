@@ -33,6 +33,7 @@ with STM32_SVD;      use STM32_SVD;
 with HAL;            use HAL;
 with STM32.GPIO;     use STM32.GPIO;
 with STM32.USARTs;   use STM32.USARTs;
+with STM32.Timers;   use STM32.Timers;
 
 package STM32.Device is
    pragma Elaborate_Body;
@@ -235,6 +236,24 @@ package STM32.Device is
    procedure Enable_Clock (This : aliased in out USART);
 
    procedure Reset (This : aliased in out USART);
+
+   Timer_1  : aliased Timer with Import, Volatile, Address => TIM1_Base;
+   Timer_2  : aliased Timer with Import, Volatile, Address => TIM2_Base;
+   Timer_3  : aliased Timer with Import, Volatile, Address => TIM3_Base;
+
+   Timer_14 : aliased Timer with Import, Volatile, Address => TIM14_Base;
+   Timer_15 : aliased Timer with Import, Volatile, Address => TIM15_Base;
+   Timer_16 : aliased Timer with Import, Volatile, Address => TIM16_Base;
+   Timer_17 : aliased Timer with Import, Volatile, Address => TIM17_Base;
+
+   Timer_6  : aliased Timer with Import, Volatile, Address => TIM6_Base;
+   Timer_7  : aliased Timer with Import, Volatile, Address => TIM7_Base;
+
+
+   procedure Enable_Clock (This : in out Timer);
+
+   procedure Reset (This : in out Timer);
+
 
 private
 

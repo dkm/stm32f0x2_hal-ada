@@ -292,4 +292,74 @@ package body STM32.Device is
       return Result;
    end System_Clock_Frequencies;
 
+   procedure Enable_Clock (This : in out Timer) is
+   begin
+      if This'Address = TIM1_Base then
+         RCC_Periph.APB2ENR.TIM1EN := True;
+      elsif This'Address = TIM2_Base then
+         RCC_Periph.APB1ENR.TIM2EN := True;
+      elsif This'Address = TIM3_Base then
+         RCC_Periph.APB1ENR.TIM3EN := True;
+
+      elsif This'Address = TIM14_Base then
+         RCC_Periph.APB1ENR.TIM14EN := True;
+      elsif This'Address = TIM15_Base then
+         RCC_Periph.APB2ENR.TIM15EN := True;
+      elsif This'Address = TIM16_Base then
+         RCC_Periph.APB2ENR.TIM16EN := True;
+      elsif This'Address = TIM17_Base then
+         RCC_Periph.APB2ENR.TIM17EN := True;
+
+      elsif This'Address = TIM6_Base then
+         RCC_Periph.APB1ENR.TIM6EN := True;
+      elsif This'Address = TIM7_Base then
+         RCC_Periph.APB1ENR.TIM7EN := True;
+
+      else
+         raise Unknown_Device;
+      end if;
+   end Enable_Clock;
+
+   -----------
+   -- Reset --
+   -----------
+
+   procedure Reset (This : in out Timer) is
+   begin
+      if This'Address = TIM1_Base then
+         RCC_Periph.APB2RSTR.TIM1RST := True;
+         RCC_Periph.APB2RSTR.TIM1RST := False;
+      elsif This'Address = TIM2_Base then
+         RCC_Periph.APB1RSTR.TIM2RST := True;
+         RCC_Periph.APB1RSTR.TIM2RST := False;
+      elsif This'Address = TIM3_Base then
+         RCC_Periph.APB1RSTR.TIM3RST := True;
+         RCC_Periph.APB1RSTR.TIM3RST := False;
+
+      elsif This'Address = TIM14_Base then
+         RCC_Periph.APB1RSTR.TIM14RST := True;
+         RCC_Periph.APB1RSTR.TIM14RST := False;
+      elsif This'Address = TIM15_Base then
+         RCC_Periph.APB2RSTR.TIM15RST := True;
+         RCC_Periph.APB2RSTR.TIM15RST := False;
+      elsif This'Address = TIM16_Base then
+         RCC_Periph.APB2RSTR.TIM16RST := True;
+         RCC_Periph.APB2RSTR.TIM16RST := False;
+      elsif This'Address = TIM17_Base then
+         RCC_Periph.APB2RSTR.TIM17RST := True;
+         RCC_Periph.APB2RSTR.TIM17RST := False;
+
+      elsif This'Address = TIM6_Base then
+         RCC_Periph.APB1RSTR.TIM6RST := True;
+         RCC_Periph.APB1RSTR.TIM6RST := False;
+      elsif This'Address = TIM7_Base then
+         RCC_Periph.APB1RSTR.TIM7RST := True;
+         RCC_Periph.APB1RSTR.TIM7RST := False;
+
+      else
+         raise Unknown_Device;
+      end if;
+   end Reset;
+
+
 end STM32.Device;
