@@ -35,6 +35,8 @@ with STM32.GPIO;     use STM32.GPIO;
 with STM32.USARTs;   use STM32.USARTs;
 with STM32.Timers;   use STM32.Timers;
 
+with STM32.USB_Device;      use STM32.USB_Device;
+
 package STM32.Device is
    pragma Elaborate_Body;
 
@@ -221,7 +223,7 @@ package STM32.Device is
    function System_Clock_Frequencies return RCC_System_Clocks;
 
 --   RTC : aliased RTC_Device;
-
+   UDC     : aliased STM32.USB_Device.UDC;
 
    Internal_USART_1 : aliased Internal_USART with Import, Volatile, Address => USART1_Base;
    Internal_USART_2 : aliased Internal_USART with Import, Volatile, Address => USART2_Base;
