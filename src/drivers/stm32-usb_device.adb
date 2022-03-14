@@ -1,3 +1,4 @@
+with System;
 
 with System.Storage_Elements;
 with STM32_SVD.USB; use STM32_SVD.USB;
@@ -17,13 +18,13 @@ package body STM32.USB_Device is
                             Min_Alignment :        UInt8 := 1)
                             return System.Address
    is
+      use System.Storage_Elements;
+      Offset    : Packet_Buffer_Offset;
+      Alignment : UInt32 := UInt32 (Min_Alignment);
    begin
-   return Standard.USB.Utils.Allocate
-     (This.Alloc,
-      Alignment => UInt8'Max (Min_Alignment, EP_Buffer_Min_Alignment),
-      Len       => Len);
+      Offset := Allocate_Buffer (This, Natural (Len), Natural (Alignment));
+      return Packet_Buffer_Base + Offset;
    end Request_Buffer;
-
 
    overriding
    procedure Start (This : in out UDC) is
@@ -97,5 +98,25 @@ package body STM32.USB_Device is
    begin
      null;
    end Set_Address;
+
+
+   function Allocate_Buffer
+      (This      : in out UDC;
+       Size      : Natural;
+       Alignment : Natural)
+      return Packet_Buffer_Offset
+   is
+      use System.Storage_Elements;
+      Addr  : Packet_Buffer_Offset := This.Next_Buffer;
+      --  A     : constant Natural := Natural (Addr) mod Alignment;
+      --  Extra : constant Natural := Alignment - A;
+   begin
+      --  if A /= 0 then
+      --     Addr := Addr + Storage_Offset (Extra);
+      --  end if;
+      --  This.Next_Buffer := This.Next_Buffer + Storage_Offset (Extra) + Storage_Offset (Size);
+      return Addr;
+   end Allocate_Buffer;
+
 
 end STM32.USB_Device;

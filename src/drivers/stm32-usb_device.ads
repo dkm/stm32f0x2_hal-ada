@@ -1,3 +1,4 @@
+with System.Storage_Elements;
 with System;
 with HAL; use HAL;
 
@@ -71,11 +72,17 @@ package STM32.USB_Device is
 
 
 private
+   Packet_Buffer_Base : constant System.Address := System'To_Address (16#4000_6000#);
+   subtype Packet_Buffer_Offset is System.Storage_Elements.Storage_Offset range 16#000# .. 16#3FF#;
 
-   EP_Buffer_Min_Alignment : constant := 4;
+   function Allocate_Buffer
+      (This      : in out UDC;
+       Size      : Natural;
+       Alignment : Natural)
+       return Packet_Buffer_Offset;
 
    type UDC
    is new USB_Device_Controller with record
-      Alloc : Standard.USB.Utils.Basic_RAM_Allocator (200);
+     Next_Buffer : Packet_Buffer_Offset := 0;
    end record;
 end STM32.USB_Device;
