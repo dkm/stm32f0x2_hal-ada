@@ -81,8 +81,17 @@ private
        Alignment : Natural)
        return Packet_Buffer_Offset;
 
+   type Endpoint_Status is record
+      Addr           : System.Address := System.Null_Address;
+      Next_PID       : Boolean := False;
+      Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+   end record;
+
+   Num_Endpoints : constant := 8;
+   type Endpoint_Status_Array is array (USB.EP_Id, USB.EP_Dir) of Endpoint_Status;
    type UDC
    is new USB_Device_Controller with record
-     Next_Buffer : Packet_Buffer_Offset := 0;
+     Next_Buffer : Packet_Buffer_Offset :=  System.Storage_Elements.Storage_Offset (Num_Endpoints * 8);
+     EP_Status   : Endpoint_Status_Array := (others => (others => <>));
    end record;
 end STM32.USB_Device;

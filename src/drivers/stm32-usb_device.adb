@@ -22,7 +22,16 @@ package body STM32.USB_Device is
       Offset    : Packet_Buffer_Offset;
       Alignment : UInt32 := UInt32 (Min_Alignment);
    begin
+      --  buffers must be half-word aligned (16-bits)
+      Alignment := Alignment and (not 16#F#);
+
+      if Alignment = 0 or Alignment < UInt32 (Min_Alignment) then
+         Alignment := Alignment + 16;
+      end if;
+
       Offset := Allocate_Buffer (This, Natural (Len), Natural (Alignment));
+      This.EP_Status (Ep.Num, Ep.Dir).Buffer_Address := Offset;
+
       return Packet_Buffer_Base + Offset;
    end Request_Buffer;
 
@@ -108,15 +117,30 @@ package body STM32.USB_Device is
    is
       use System.Storage_Elements;
       Addr  : Packet_Buffer_Offset := This.Next_Buffer;
-      --  A     : constant Natural := Natural (Addr) mod Alignment;
-      --  Extra : constant Natural := Alignment - A;
+      A     : constant Natural := Natural (Addr) mod Alignment;
+      Extra : constant Natural := Alignment - A;
    begin
-      --  if A /= 0 then
-      --     Addr := Addr + Storage_Offset (Extra);
-      --  end if;
-      --  This.Next_Buffer := This.Next_Buffer + Storage_Offset (Extra) + Storage_Offset (Size);
+      if A /= 0 then
+         Addr := Addr + Storage_Offset (Extra);
+      end if;
+
+      This.Next_Buffer := This.Next_Buffer + Storage_Offset (Extra) + Storage_Offset (Size);
       return Addr;
    end Allocate_Buffer;
 
+   procedure Init_BTable
+     (This   : in out UDC)
+   is
+   begin
+      USB_Periph.BTABLE.BTABLE := 0;
+   end Init_BTable;
+
+   procedure Set_Buffer
+      (This    : in out UDC;
+       EP      :        EP_Addr)
+   is
+   begin
+     null;
+   end Set_Buffer;
 
 end STM32.USB_Device;
