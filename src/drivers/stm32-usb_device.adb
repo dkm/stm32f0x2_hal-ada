@@ -67,7 +67,6 @@ package body STM32.USB_Device is
      null;
    end EP_Write_Packet;
 
-  
    overriding
    procedure EP_Setup (This     : in out UDC;
                        EP       :        EP_Addr;
@@ -75,7 +74,29 @@ package body STM32.USB_Device is
                        Max_Size :        UInt16)
    is
    begin
-     null;
+     if Ep.Num > Num_Endpoints then
+       raise Program_Error with "Invalid endpoint number";
+     end if;
+
+     case EP.Dir is
+         when EP_Out =>
+           --  Set EP type
+           --  Set BTABLE[Ep]
+           --   - addr_rx => Buffer in Status
+           --   - count_rx => size
+           null;
+         when EP_In =>
+           --  Set EP type
+           --  Set BTABLE[EP]
+           --   - addr_tx => Buffer in Status
+           --   - count_tx => 0
+           null;
+      end case;
+
+      --  Set EP Type
+      --   - USB_EPxR.Ep_Type :=
+      --   - USB_EPxR.Ep_Kind :=
+      --   - USB_EPxR.Ctr_Tx := 0
    end EP_Setup;
 
 
@@ -90,7 +111,6 @@ package body STM32.USB_Device is
      null;
    end EP_Ready_For_Data;
 
-   
    overriding
    procedure EP_Stall (This : in out UDC;
                        EP   :        EP_Addr;
@@ -105,6 +125,7 @@ package body STM32.USB_Device is
                           Addr :        UInt7)
    is
    begin
+     --   - USB_EPxR.EA := Addr
      null;
    end Set_Address;
 
@@ -128,12 +149,6 @@ package body STM32.USB_Device is
       return Addr;
    end Allocate_Buffer;
 
-   procedure Init_BTable
-     (This   : in out UDC)
-   is
-   begin
-      USB_Periph.BTABLE.BTABLE := 0;
-   end Init_BTable;
 
    procedure Set_Buffer
       (This    : in out UDC;

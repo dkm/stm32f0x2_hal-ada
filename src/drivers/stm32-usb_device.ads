@@ -10,6 +10,8 @@ with STM32_SVD.USB;
 
 package STM32.USB_Device is
 
+   Num_Endpoints : constant := 8;
+
    type UDC
    is new USB_Device_Controller with private;
 
@@ -87,7 +89,6 @@ private
       Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
    end record;
 
-   Num_Endpoints : constant := 8;
    type Endpoint_Status_Array is array (USB.EP_Id, USB.EP_Dir) of Endpoint_Status;
    type UDC
    is new USB_Device_Controller with record
