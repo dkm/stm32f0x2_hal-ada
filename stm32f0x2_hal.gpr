@@ -3,7 +3,8 @@ with "cortex_m0.gpr";
 
 project Stm32f0x2_Hal is
 
-   for Target use "arm-elf";
+   for Target use "arm-eabi";
+--    for Target use "arm-elf";
    for Runtime ("Ada") use "zfp-cortex-m0";
 
    for Languages use ("Ada");
@@ -95,7 +96,7 @@ project Stm32f0x2_Hal is
                             "-gnatn"); -- Enable inlining
       when "debug" =>
          Build_Switches := ("-g",   -- Debug info
-                            "-Og"); -- No optimization
+                            "-Og", "-save-temps"); -- No optimization
    end case;
 
    package Compiler is
@@ -106,7 +107,9 @@ project Stm32f0x2_Hal is
         Style_Checks_Switches &
         Contracts_Switches &
         ("-gnatw.X", -- Disable warnings for No_Exception_Propagation
-         "-gnatQ");  -- Don't quit. Generate ALI and tree files even if illegalities
+         "-gnatQ",   -- Don't quit. Generate ALI and tree files even if illegalities
+         "-ffunction-sections",
+         "-fdata-sections");
    end Compiler;
 
    package Binder is
