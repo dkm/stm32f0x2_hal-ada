@@ -3,6 +3,11 @@ with System;
 with System.Storage_Elements;
 with STM32_SVD.USB; use STM32_SVD.USB;
 
+--  handcrafted view for BTable that can be viewed as registers (but are living
+--  in packet buffer memory)
+
+with STM32.USB_Btable; use STM32.USB_Btable;
+
 package body STM32.USB_Device is
 
    overriding
@@ -21,6 +26,10 @@ package body STM32.USB_Device is
       use System.Storage_Elements;
       Offset    : Packet_Buffer_Offset;
       Alignment : UInt32 := UInt32 (Min_Alignment);
+
+      Use_32b_block : Boolean := False;
+      Num_Blocks : Natural := 0;
+
    begin
       --  buffers must be half-word aligned (16-bits)
       Alignment := Alignment and (not 16#F#);
@@ -30,7 +39,21 @@ package body STM32.USB_Device is
       end if;
 
       Offset := Allocate_Buffer (This, Natural (Len), Natural (Alignment));
-      This.EP_Status (Ep.Num, Ep.Dir).Buffer_Address := Offset;
+
+      case EP.Dir is
+        when EP_Out =>
+          Btable(Ep.Num).ADDR_TX.ADDRN_TX := UInt14 (Offset);
+        when EP_In =>
+          Btable(Ep.Num).ADDR_RX.ADDRN_RX := UInt14 (Offset);
+          if Len <= 62 then
+            Num_Blocks := Integer(Len) / 2;
+          else
+            Num_Blocks := Integer (Len) / 32;
+            Use_32b_block := True;
+          end if;
+          Btable(Ep.Num).COUNT_RX.BL_SIZE := Bit (if Use_32b_block then 1 else 0);
+          Btable(Ep.Num).COUNT_RX.NUM_BLOCK := UInt5 (Num_Blocks);
+      end case;
 
       return Packet_Buffer_Base + Offset;
    end Request_Buffer;
@@ -41,14 +64,12 @@ package body STM32.USB_Device is
      null;
    end Start;
 
-
    overriding
    procedure Reset (This : in out UDC)
    is
    begin
       null;
    end Reset;
-
 
    overriding
    function Poll (This : in out UDC) return UDC_Event is
