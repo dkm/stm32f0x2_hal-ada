@@ -73,13 +73,48 @@ package body STM32.USB_Device is
                        Typ      :        EP_Type;
                        Max_Size :        UInt16)
    is
+
+     UPR: EP0R_Register renames USB_Periph.EP0R;
+
+     type EP_Type_Mapping_T is array (EP_Type) of UInt2;
+     EPM : constant EP_Type_Mapping_T := (
+       Bulk => 0,
+       Control => 1,
+       Isochronous => 2,
+       Interrupt => 3);
+
+     --  Invariant fields as described in the doc (RM0091 p883).
+     --  When doing RMW, the recommended way is
+     --  - load value from register
+     --  - write 'invariant' values in fields that can only be modified by the
+     --    hw
+     --  - modify other fields
+     --  - write back the register
+     Tmp : EP0R_Register := (UPR with delta
+       CTR_RX => True,
+       DTOG_RX => False,
+       STAT_RX => 0,
+       CTR_TX => True,
+       DTOG_TX => False,
+       STAT_TX => 0
+     );
    begin
      if Ep.Num > Num_Endpoints then
        raise Program_Error with "Invalid endpoint number";
      end if;
 
+     Tmp.CTR_RX := False;
+     Tmp.CTR_TX := False;
+     Tmp.EA :=  EP.Num;
+     Tmp.EP_TYPE := EPM (Typ);
+     Tmp.EP_KIND := False;
+
+     -- set_stat_rx
+     -- set_stat_tx
+
      case EP.Dir is
          when EP_Out =>
+
            --  Set EP type
            --  Set BTABLE[Ep]
            --   - addr_rx => Buffer in Status
@@ -97,6 +132,8 @@ package body STM32.USB_Device is
       --   - USB_EPxR.Ep_Type :=
       --   - USB_EPxR.Ep_Kind :=
       --   - USB_EPxR.Ctr_Tx := 0
+
+      UPR := Tmp;
    end EP_Setup;
 
 
@@ -125,8 +162,7 @@ package body STM32.USB_Device is
                           Addr :        UInt7)
    is
    begin
-     --   - USB_EPxR.EA := Addr
-     null;
+     USB_Periph.DADDR.ADD := Addr;
    end Set_Address;
 
 

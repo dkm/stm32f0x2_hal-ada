@@ -96,7 +96,7 @@ project Stm32f0x2_Hal is
                             "-gnatn"); -- Enable inlining
       when "debug" =>
          Build_Switches := ("-g",   -- Debug info
-                            "-Og", "-save-temps"); -- No optimization
+                            "-Og"); -- No optimization
    end case;
 
    package Compiler is
@@ -109,7 +109,8 @@ project Stm32f0x2_Hal is
         ("-gnatw.X", -- Disable warnings for No_Exception_Propagation
          "-gnatQ",   -- Don't quit. Generate ALI and tree files even if illegalities
          "-ffunction-sections",
-         "-fdata-sections");
+         "-fdata-sections",
+         "-gnat2020");
    end Compiler;
 
    package Binder is
