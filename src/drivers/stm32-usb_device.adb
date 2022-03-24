@@ -156,49 +156,39 @@ package body STM32.USB_Device is
      --  - modify other fields
      --  - write back the register
      Tmp : EP0R_Register := (UPR with delta
-       CTR_RX => True,
+       CTR_RX => True, 
        DTOG_RX => False,
        STAT_RX => 0,
        CTR_TX => True,
        DTOG_TX => False,
        STAT_TX => 0
      );
+
+     --  If EP is IN, set TX as NAK, else DISABLE it.
+     NStat_Tx : UInt2 := (if EP.Dir = EP_In then 10 else 0);
+
+     --  If EP is OUT, set RX as VALID, else DISABLE it.
+     NStat_Rx : UInt2 := (if EP.Dir = EP_Out then 11 else 0);
+
    begin
      if Ep.Num > Num_Endpoints then
        raise Program_Error with "Invalid endpoint number";
      end if;
 
-     Tmp.CTR_RX := False;
-     Tmp.CTR_TX := False;
-     Tmp.EA :=  EP.Num;
-     Tmp.EP_TYPE := EPM (Typ);
-     Tmp.EP_KIND := False;
+     UPR := (Tmp with delta
+             CTR_RX => False,
+             CTR_TX => False,
+             EP_KIND => False
 
-     -- set_stat_rx
-     -- set_stat_tx
+             EA => EP.Num,
+             EP_TYPE => EPM (Typ),
+             );
 
-     case EP.Dir is
-         when EP_Out =>
 
-           --  Set EP type
-           --  Set BTABLE[Ep]
-           --   - addr_rx => Buffer in Status
-           --   - count_rx => size
-           null;
-         when EP_In =>
-           --  Set EP type
-           --  Set BTABLE[EP]
-           --   - addr_tx => Buffer in Status
-           --   - count_tx => 0
-           null;
-      end case;
+      UPR := (UPR with delta
+              STAT_TX => Tmp.STAT_TX xor NStat_Tx,
+              STAT_RX => Tmp.STAT_RX xor NStat_Rx);
 
-      --  Set EP Type
-      --   - USB_EPxR.Ep_Type :=
-      --   - USB_EPxR.Ep_Kind :=
-      --   - USB_EPxR.Ctr_Tx := 0
-
-      UPR := Tmp;
    end EP_Setup;
 
 
