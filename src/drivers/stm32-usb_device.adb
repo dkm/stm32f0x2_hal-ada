@@ -10,6 +10,18 @@ with STM32.USB_Btable; use STM32.USB_Btable;
 
 package body STM32.USB_Device is
 
+   --  The SVD package exports 1 type per register.
+   --  It doesn't merge identical types or instances in arrays.
+   --  Do it manually here.
+
+   type EPR_Registers is
+     array (UInt4 range 0 .. Num_Endpoints - 1)
+     of EP0R_Register
+     with Size => 32 * Num_Endpoints;
+
+   EPRS : aliased EPR_Registers
+     with Import, Address => USB_Periph.EP0R'Address;
+
    overriding
    procedure Initialize (This : in out UDC) is
    begin
@@ -55,6 +67,8 @@ package body STM32.USB_Device is
           Btable(Ep.Num).COUNT_RX.NUM_BLOCK := UInt5 (Num_Blocks);
       end case;
 
+      This.EP_Status (Ep.Num, Ep.Dir).Buffer_Address := Offset;
+
       return Packet_Buffer_Base + Offset;
    end Request_Buffer;
 
@@ -68,15 +82,32 @@ package body STM32.USB_Device is
    procedure Reset (This : in out UDC)
    is
    begin
-      null;
+     USB_Periph.DADDR.EF := True;
+     --  Configure at least EP0
    end Reset;
 
    overriding
    function Poll (This : in out UDC) return UDC_Event is
    begin
-         return No_Event;
+     return No_Event;
    end Poll;
 
+   function Endpoint_Buffer_Address
+      (Ep : USB.EP_Addr)
+      return System.Address
+   is
+      use System.Storage_Elements;
+      Offset : UInt14;
+
+   begin
+     case EP.Dir is
+       when EP_Out =>
+         Offset := Btable(Ep.Num).ADDR_TX.ADDRN_TX;
+       when EP_In =>
+         Offset := Btable(Ep.Num).ADDR_RX.ADDRN_RX;
+      end case;
+     return Packet_Buffer_Base + Packet_Buffer_Offset (Offset);
+   end Endpoint_Buffer_Address;
 
    overriding
    procedure EP_Write_Packet (This : in out UDC;
@@ -84,8 +115,21 @@ package body STM32.USB_Device is
                               Addr :        System.Address;
                               Len  :        UInt32)
    is
+      use System.Storage_Elements;
+      Source : Storage_Array (1 .. Storage_Offset (Len))
+         with Address => Addr;
+      Target : Storage_Array (1 .. Storage_Offset (Len))
+         with Address => Endpoint_Buffer_Address ((Num => Ep, Dir => USB.EP_In));
+
+      UPR: EP0R_Register renames EPRS (Ep);
    begin
-     null;
+     case UPR.STAT_TX is
+       when 0|3 => raise Program_Error with "Would block";
+       when others => null;
+     end case;
+     Target := Source;
+
+     Btable(Ep).COUNT_TX.COUNTN_TX := UInt10 (Len);
    end EP_Write_Packet;
 
    overriding
@@ -95,7 +139,7 @@ package body STM32.USB_Device is
                        Max_Size :        UInt16)
    is
 
-     UPR: EP0R_Register renames USB_Periph.EP0R;
+     UPR: EP0R_Register renames EPRS (Ep.Num);
 
      type EP_Type_Mapping_T is array (EP_Type) of UInt2;
      EPM : constant EP_Type_Mapping_T := (
@@ -165,8 +209,41 @@ package body STM32.USB_Device is
                                 Size  :        UInt32;
                                 Ready :        Boolean := True)
    is
+     UPR: EP0R_Register renames EPRS (Ep);
+
+     -- Status : UInt2 := UPR.STAT_TX;
+     Tmp : EP0R_Register := (UPR with delta
+                             CTR_RX => True,
+                             DTOG_RX => False,
+                             STAT_RX => 0,
+                             CTR_TX => True,
+                             DTOG_TX => False,
+                             STAT_TX => 0
+                             );
+
+     Dir : constant USB.EP_Dir := USB.EP_Out;
    begin
-     null;
+     --  Keep track of the user buffer where received data will be moved after
+     --  reception.
+     This.EP_Status (Ep, Dir).Addr := Addr;
+
+     if Ready then
+       --  Set STAT_RX to VALID (0b11) to enable data reception.
+       UPR := (Tmp with delta
+               STAT_RX => Tmp.STAT_RX xor 2);
+     else
+       UPR := (Tmp with delta
+               STAT_RX => Tmp.STAT_RX xor 0);
+     end if;
+     -- --  Clear CTR_RX
+     -- UPR := (UPR with delta
+     --          CTR_RX => False, --  clear
+     --          DTOG_RX => False,
+     --          STAT_RX => 0,
+     --          CTR_TX => True,
+     --          DTOG_TX => False,
+     --          STAT_TX => 0
+     --          );
    end EP_Ready_For_Data;
 
    overriding
@@ -174,8 +251,25 @@ package body STM32.USB_Device is
                        EP   :        EP_Addr;
                        Set  :        Boolean := True)
    is
+     UPR: EP0R_Register renames EPRS (Ep.Num);
+     Tmp : EP0R_Register := (UPR with delta
+                             CTR_RX => True,
+                             DTOG_RX => False,
+                             STAT_RX => 0,
+                             CTR_TX => True,
+                             DTOG_TX => False,
+                             STAT_TX => 0
+                             );
+
    begin
-     null;
+     case Ep.Dir is
+       when USB.EP_In =>
+         UPR := (Tmp with delta
+                 STAT_TX => Tmp.STAT_TX xor 1);
+       when USB.EP_Out =>
+         UPR := (Tmp with delta
+                 STAT_RX => Tmp.STAT_RX xor 1);
+     end case;
    end EP_Stall;
 
    overriding
@@ -205,14 +299,5 @@ package body STM32.USB_Device is
       This.Next_Buffer := This.Next_Buffer + Storage_Offset (Extra) + Storage_Offset (Size);
       return Addr;
    end Allocate_Buffer;
-
-
-   procedure Set_Buffer
-      (This    : in out UDC;
-       EP      :        EP_Addr)
-   is
-   begin
-     null;
-   end Set_Buffer;
 
 end STM32.USB_Device;

@@ -93,6 +93,6 @@ private
    type UDC
    is new USB_Device_Controller with record
      Next_Buffer : Packet_Buffer_Offset :=  System.Storage_Elements.Storage_Offset (Num_Endpoints * 8);
-     --  EP_Status   : Endpoint_Status_Array := (others => (others => <>));
+     EP_Status   : Endpoint_Status_Array := (others => (others => <>));
    end record;
 end STM32.USB_Device;
