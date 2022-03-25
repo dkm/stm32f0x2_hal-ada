@@ -29,7 +29,7 @@ package STM32.USB_Device is
    function Valid_EP_Id (This : in out UDC;
                          EP   :        EP_Id)
                          return Boolean
-   is (Natural (EP) in 0 .. 7);
+   is (Natural (EP) in 0 .. Num_Endpoints - 1);
 
    overriding
    procedure Start (This : in out UDC);

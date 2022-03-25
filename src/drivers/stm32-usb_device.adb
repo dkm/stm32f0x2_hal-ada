@@ -14,9 +14,11 @@ package body STM32.USB_Device is
    --  It doesn't merge identical types or instances in arrays.
    --  Do it manually here.
 
+   type EPR_Register is new EP0R_Register;
+
    type EPR_Registers is
      array (UInt4 range 0 .. Num_Endpoints - 1)
-     of EP0R_Register
+     of EPR_Register
      with Size => 32 * Num_Endpoints;
 
    EPRS : aliased EPR_Registers
@@ -121,7 +123,7 @@ package body STM32.USB_Device is
       Target : Storage_Array (1 .. Storage_Offset (Len))
          with Address => Endpoint_Buffer_Address ((Num => Ep, Dir => USB.EP_In));
 
-      UPR: EP0R_Register renames EPRS (Ep);
+      UPR: EPR_Register renames EPRS (Ep);
    begin
      case UPR.STAT_TX is
        when 0|3 => raise Program_Error with "Would block";
@@ -132,21 +134,10 @@ package body STM32.USB_Device is
      Btable(Ep).COUNT_TX.COUNTN_TX := UInt10 (Len);
    end EP_Write_Packet;
 
-   overriding
-   procedure EP_Setup (This     : in out UDC;
-                       EP       :        EP_Addr;
-                       Typ      :        EP_Type;
-                       Max_Size :        UInt16)
+   function Get_EPR_With_Invariant (EP_Id : UInt4) return EPR_Register
    is
-
-     UPR: EP0R_Register renames EPRS (Ep.Num);
-
-     type EP_Type_Mapping_T is array (EP_Type) of UInt2;
-     EPM : constant EP_Type_Mapping_T := (
-       Bulk => 0,
-       Control => 1,
-       Isochronous => 2,
-       Interrupt => 3);
+     UPR: EPR_Register renames EPRS (Ep_Id);
+   begin
 
      --  Invariant fields as described in the doc (RM0091 p883).
      --  When doing RMW, the recommended way is
@@ -155,20 +146,39 @@ package body STM32.USB_Device is
      --    hw
      --  - modify other fields
      --  - write back the register
-     Tmp : EP0R_Register := (UPR with delta
-       CTR_RX => True, 
-       DTOG_RX => False,
-       STAT_RX => 0,
-       CTR_TX => True,
-       DTOG_TX => False,
-       STAT_TX => 0
-     );
 
-     --  If EP is IN, set TX as NAK, else DISABLE it.
-     NStat_Tx : UInt2 := (if EP.Dir = EP_In then 10 else 0);
+     return (UPR with delta
+             CTR_RX => True,
+             DTOG_RX => False,
+             STAT_RX => 0,
+             CTR_TX => True,
+             DTOG_TX => False,
+             STAT_TX => 0);
+   end Get_EPR_With_Invariant;
 
-     --  If EP is OUT, set RX as VALID, else DISABLE it.
-     NStat_Rx : UInt2 := (if EP.Dir = EP_Out then 11 else 0);
+   overriding
+   procedure EP_Setup (This     : in out UDC;
+                       EP       :        EP_Addr;
+                       Typ      :        EP_Type;
+                       Max_Size :        UInt16)
+   is
+
+     UPR: EPR_Register renames EPRS (Ep.Num);
+
+     type EP_Type_Mapping_T is array (EP_Type) of UInt2;
+     EPM : constant EP_Type_Mapping_T := (
+       Bulk => 0,
+       Control => 1,
+       Isochronous => 2,
+       Interrupt => 3);
+
+     --  If EP is IN, set CTR_TX as NAK, else DISABLE it.
+     NStat_Tx : UInt2 := (if EP.Dir = EP_In then 2 else 0);
+
+     --  If EP is OUT, set CTR_RX as VALID, else DISABLE it.
+     NStat_Rx : UInt2 := (if EP.Dir = EP_Out then 3 else 0);
+
+     Tmp : EPR_Register := Get_EPR_With_Invariant (Ep.Num);
 
    begin
      if Ep.Num > Num_Endpoints then
@@ -178,17 +188,12 @@ package body STM32.USB_Device is
      UPR := (Tmp with delta
              CTR_RX => False,
              CTR_TX => False,
-             EP_KIND => False
-
+             EP_KIND => False,
              EA => EP.Num,
              EP_TYPE => EPM (Typ),
+             STAT_TX => Tmp.STAT_TX xor NStat_Tx,
+             STAT_RX => Tmp.STAT_RX xor NStat_Rx
              );
-
-
-      UPR := (UPR with delta
-              STAT_TX => Tmp.STAT_TX xor NStat_Tx,
-              STAT_RX => Tmp.STAT_RX xor NStat_Rx);
-
    end EP_Setup;
 
 
@@ -199,19 +204,14 @@ package body STM32.USB_Device is
                                 Size  :        UInt32;
                                 Ready :        Boolean := True)
    is
-     UPR: EP0R_Register renames EPRS (Ep);
+     UPR: EPR_Register renames EPRS (Ep);
+
+     Tmp : EPR_Register := Get_EPR_With_Invariant (Ep);
 
      -- Status : UInt2 := UPR.STAT_TX;
-     Tmp : EP0R_Register := (UPR with delta
-                             CTR_RX => True,
-                             DTOG_RX => False,
-                             STAT_RX => 0,
-                             CTR_TX => True,
-                             DTOG_TX => False,
-                             STAT_TX => 0
-                             );
 
      Dir : constant USB.EP_Dir := USB.EP_Out;
+
    begin
      --  Keep track of the user buffer where received data will be moved after
      --  reception.
@@ -241,8 +241,8 @@ package body STM32.USB_Device is
                        EP   :        EP_Addr;
                        Set  :        Boolean := True)
    is
-     UPR: EP0R_Register renames EPRS (Ep.Num);
-     Tmp : EP0R_Register := (UPR with delta
+     UPR: EPR_Register renames EPRS (Ep.Num);
+     Tmp : EPR_Register := (UPR with delta
                              CTR_RX => True,
                              DTOG_RX => False,
                              STAT_RX => 0,
