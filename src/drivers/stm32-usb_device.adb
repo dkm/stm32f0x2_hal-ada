@@ -24,10 +24,38 @@ package body STM32.USB_Device is
    EPRS : aliased EPR_Registers
      with Import, Address => USB_Periph.EP0R'Address;
 
+
+   procedure Reset_ISTR is
+   begin
+     USB_Periph.ISTR := (USB_Periph.ISTR with delta
+                         L1REQ => False,
+                         ESOF => False,
+                         SOF => False,
+                         RESET => False,
+                         SUSP => False,
+                         WKUP => False,
+                         ERR => False,
+                         PMAOVR => False);
+   end Reset_ISTR;
+
    overriding
    procedure Initialize (This : in out UDC) is
    begin
-     null;
+     USB_Periph.CNTR.PDWN := False;
+
+     -- wait a bit
+     USB_Periph.BTABLE.BTABLE := 0;
+
+     USB_Periph.CNTR := (USB_Periph.CNTR with delta
+                        FRES => False,
+                        RESETM => True,
+                        SUSPM => True,
+                        WKUPM => True,
+                         CTRM => True);
+
+     Reset_ISTR;
+
+     --  Maybe set the PULL_UP here.
    end Initialize;
 
    overriding
@@ -84,13 +112,29 @@ package body STM32.USB_Device is
    procedure Reset (This : in out UDC)
    is
    begin
-     USB_Periph.DADDR.EF := True;
+     Reset_ISTR;
+
+     USB_Periph.DADDR := (USB_Periph.DADDR with delta
+                          EF => True,
+                          ADD => 0);
      --  Configure at least EP0
    end Reset;
 
    overriding
    function Poll (This : in out UDC) return UDC_Event is
+     Istr : constant ISTR_Register := USB_Periph.ISTR;
    begin
+     if Istr.WKUP then
+       null;
+     elsif Istr.RESET then
+       null;
+     elsif Istr.SUSP then
+       null;
+     elsif Istr.CTR then
+       null;
+     else
+       return No_Event;
+     end if;
      return No_Event;
    end Poll;
 
