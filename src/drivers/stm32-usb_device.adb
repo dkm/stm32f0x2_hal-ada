@@ -125,13 +125,50 @@ package body STM32.USB_Device is
      Istr : constant ISTR_Register := USB_Periph.ISTR;
    begin
      if Istr.WKUP then
-       null;
+       --  See rm0091 p871
+
+       --  Clear WKUP by writing 0. Writing 1 in other fields leave them unchanged.
+       USB_Periph.ISTR := (Istr with delta
+                           L1REQ => True,
+                           ESOF => True,
+                           SOF => True,
+                           RESET => True,
+                           SUSP => True,
+                           WKUP => False, --  Clear
+                           ERR => True,
+                           PMAOVR => True
+                           );
+       USB_Periph.CNTR.FSUSP := False;
+       raise Program_Error with "not handled correctly yet";
      elsif Istr.RESET then
-       null;
+       --  Clear RESET by writing 0. Writing 1 in other fields leave them unchanged.
+       USB_Periph.ISTR := (Istr with delta
+                           L1REQ => True,
+                           ESOF => True,
+                           SOF => True,
+                           RESET => False, --  Clear
+                           SUSP => True,
+                           WKUP => True,
+                           ERR => True,
+                           PMAOVR => True
+                           );
+       return (Kind => USB.HAL.Device.Reset);
      elsif Istr.SUSP then
-       null;
+       --  Clear SUSP by writing 0. Writing 1 in other fields leave them unchanged.
+       USB_Periph.ISTR := (Istr with delta
+                           L1REQ => True,
+                           ESOF => True,
+                           SOF => True,
+                           RESET => True,
+                           SUSP => False,  -- Clear
+                           WKUP => True,
+                           ERR => True,
+                           PMAOVR => True
+                           );
+       raise Program_Error with "not correctly handled yet";
      elsif Istr.CTR then
        null;
+       --  Loop over EP and check RX/TX
      else
        return No_Event;
      end if;
