@@ -83,6 +83,11 @@ private
        Alignment : Natural)
        return Packet_Buffer_Offset;
 
+   procedure Copy_Endpoint_Buffer
+     (This : in out UDC;
+      Num  : USB.EP_Id;
+      Dir  : USB.EP_Dir);
+
    type Endpoint_Status is record
       Addr           : System.Address := System.Null_Address;
       Next_PID       : Boolean := False;

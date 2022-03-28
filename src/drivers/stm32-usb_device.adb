@@ -120,9 +120,11 @@ package body STM32.USB_Device is
      --  Configure at least EP0
    end Reset;
 
+
    overriding
    function Poll (This : in out UDC) return UDC_Event is
      Istr : constant ISTR_Register := USB_Periph.ISTR;
+     EP_Out_Size, EP_In_Size : UInt10;
    begin
      if Istr.WKUP then
        --  See rm0091 p871
@@ -167,10 +169,23 @@ package body STM32.USB_Device is
                            );
        raise Program_Error with "not correctly handled yet";
      elsif Istr.CTR then
-       null;
-       --  Loop over EP and check RX/TX
-     else
-       return No_Event;
+       for EP_Id in EPRS'range loop
+         if EPRS (EP_Id).CTR_RX then
+           EP_In_Size := Btable(Ep_Id).COUNT_RX.COUNTN_RX;
+           Copy_Endpoint_Buffer (This, EP_Id, EP_In);
+
+           return (Kind => Transfer_Complete,
+                   EP   => (UInt4 (EP_Id), EP_In),
+                   BCNT => UInt11 (EP_In_Size));
+         end if;
+
+         if EPRS (EP_Id).CTR_TX then
+           EP_In_Size := Btable(Ep_Id).COUNT_TX.COUNTN_TX;
+           return (Kind => Transfer_Complete,
+                   EP   => (UInt4 (EP_Id), EP_Out),
+                   BCNT => UInt11 (EP_Out_Size));
+         end if;
+       end loop;  -- Loop over endpoints
      end if;
      return No_Event;
    end Poll;
@@ -351,6 +366,14 @@ package body STM32.USB_Device is
      USB_Periph.DADDR.ADD := Addr;
    end Set_Address;
 
+   procedure Copy_Endpoint_Buffer
+     (This : in out UDC;
+      Num  : USB.EP_Id;
+      Dir  : USB.EP_Dir)
+   is
+   begin
+     null;
+   end Copy_Endpoint_Buffer;
 
    function Allocate_Buffer
       (This      : in out UDC;
