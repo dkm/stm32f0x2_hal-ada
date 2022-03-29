@@ -13,8 +13,7 @@ package body STM32.USB_Device is
    --  The SVD package exports 1 type per register.
    --  It doesn't merge identical types or instances in arrays.
    --  Do it manually here.
-
-   type EPR_Register is new EP0R_Register;
+  type EPR_Register is new EP0R_Register;
 
    type EPR_Registers is
      array (UInt4 range 0 .. Num_Endpoints - 1)
@@ -24,6 +23,7 @@ package body STM32.USB_Device is
    EPRS : aliased EPR_Registers
      with Import, Address => USB_Periph.EP0R'Address;
 
+  function Get_EPR_With_Invariant (EP_Id : UInt4) return EPR_Register;
 
    procedure Reset_ISTR is
    begin
@@ -180,7 +180,7 @@ package body STM32.USB_Device is
          end if;
 
          if EPRS (EP_Id).CTR_TX then
-           EP_In_Size := Btable(Ep_Id).COUNT_TX.COUNTN_TX;
+           EP_Out_Size := Btable(Ep_Id).COUNT_TX.COUNTN_TX;
            return (Kind => Transfer_Complete,
                    EP   => (UInt4 (EP_Id), EP_Out),
                    BCNT => UInt11 (EP_Out_Size));
@@ -220,6 +220,7 @@ package body STM32.USB_Device is
          with Address => Endpoint_Buffer_Address ((Num => Ep, Dir => USB.EP_In));
 
       UPR: EPR_Register renames EPRS (Ep);
+      Tmp : EPR_Register;
    begin
      case UPR.STAT_TX is
        when 0|3 => raise Program_Error with "Would block";
@@ -228,6 +229,11 @@ package body STM32.USB_Device is
      Target := Source;
 
      Btable(Ep).COUNT_TX.COUNTN_TX := UInt10 (Len);
+
+     --  Set STAT_TX to VALID
+     Tmp := Get_EPR_With_Invariant (Ep);
+     UPR := (Tmp with delta
+             STAT_TX => Tmp.STAT_TX xor 3);
    end EP_Write_Packet;
 
    function Get_EPR_With_Invariant (EP_Id : UInt4) return EPR_Register
