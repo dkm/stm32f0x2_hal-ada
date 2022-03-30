@@ -40,6 +40,8 @@ with STM32.USB_Device;      use STM32.USB_Device;
 package STM32.Device is
    pragma Elaborate_Body;
 
+   procedure Delay_Cycles (Cycles : UInt32);
+
    Unknown_Device : exception;
    --  Raised by the routines below for a device passed as an actual parameter
    --  when that device is not present on the given hardware instance.

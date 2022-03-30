@@ -1,5 +1,5 @@
 with System; use System;
-
+with System.Machine_Code;
 with STM32_SVD.RCC; use STM32_SVD.RCC;
 
 package body STM32.Device is
@@ -21,6 +21,17 @@ package body STM32.Device is
    PPRE_Presc_Table : constant array (UInt3) of UInt32 :=
      (1, 1, 1, 1, 2, 4, 8, 16);
 
+   procedure Delay_Cycles (Cycles : UInt32) is
+     use System.Machine_Code;
+     use ASCII;
+     Tmp : UInt32 := 1 + Cycles / 2;
+   begin
+     Asm ("1:" & LF & HT &
+          "sub r3, #1" &LF & HT &
+          "bne 1b" & LF & HT,
+          Inputs => (UInt32'Asm_Input ("r", Tmp)),
+          Volatile => True);
+   end;
 
    ------------------------------
    -- GPIO_Port_Representation --

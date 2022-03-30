@@ -1,6 +1,7 @@
 with System;
 
 with System.Storage_Elements;
+with STM32.Device; use STM32.Device;
 with STM32_SVD.USB; use STM32_SVD.USB;
 with STM32_SVD.RCC; use STM32_SVD.RCC;
 
@@ -48,21 +49,11 @@ package body STM32.USB_Device is
      RCC_Periph.APB1RSTR.USBRST := True;
      RCC_Periph.APB1RSTR.USBRST := False;
 
-     USB_Periph.CNTR.PDWN := False;
-
+     Delay_Cycles (72);
      -- wait a bit
-     USB_Periph.BTABLE.BTABLE := 0;
 
-     USB_Periph.CNTR := (USB_Periph.CNTR with delta
-                        FRES => False,
-                        RESETM => True,
-                        SUSPM => True,
-                        WKUPM => True,
-                         CTRM => True);
-
-     Reset_ISTR;
-
-     --  Maybe set the PULL_UP here.
+     USB_Periph.CNTR.PDWN := False;
+     Delay_Cycles (72);
    end Initialize;
 
    overriding
@@ -111,13 +102,39 @@ package body STM32.USB_Device is
 
    overriding
    procedure Start (This : in out UDC) is
+     EP0R : EPR_Register := Get_EPR_With_Invariant (0);
+     UPR: EPR_Register renames EPRS (0);
    begin
-     null;
+
+     USB_Periph.BTABLE.BTABLE := 0;
+
+     USB_Periph.CNTR := (USB_Periph.CNTR with delta
+                         FRES => False,
+                         RESETM => True,
+                         SUSPM => True,
+                         WKUPM => True,
+                         CTRM => True);
+
+     UPR := (EP0R with delta
+              CTR_RX => True,
+              EP_KIND => False,
+              EP_TYPE => 1,
+              EA => 0,
+              STAT_TX => EP0R.STAT_TX xor 0,
+              STAT_RX => EP0R.STAT_RX xor 3
+              );
+
+     Reset_ISTR;
+
+     --  Maybe set the PULL_UP here.
+
    end Start;
 
    overriding
    procedure Reset (This : in out UDC)
    is
+     UPR: EPR_Register renames EPRS (0);
+     EP0R : EPR_Register := Get_EPR_With_Invariant (0);
    begin
      Reset_ISTR;
 
@@ -125,6 +142,14 @@ package body STM32.USB_Device is
                           EF => True,
                           ADD => 0);
      --  Configure at least EP0
+     UPR := (EP0R with delta
+              CTR_RX => True,
+              EP_KIND => False,
+              EP_TYPE => 1,
+              EA => 0,
+              STAT_TX => EP0R.STAT_TX xor 0,
+              STAT_RX => EP0R.STAT_RX xor 3
+              );
    end Reset;
 
 
