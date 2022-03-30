@@ -95,8 +95,8 @@ project Stm32f0x2_Hal is
          Build_Switches := ("-O3",     -- Optimization
                             "-gnatn"); -- Enable inlining
       when "debug" =>
-         Build_Switches := ("-g",   -- Debug info
-                            "-Og"); -- No optimization
+         Build_Switches := ("-g3",   -- Debug info
+                            "-O0"); -- No optimization
    end case;
 
    package Compiler is

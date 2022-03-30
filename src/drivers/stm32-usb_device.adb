@@ -2,6 +2,7 @@ with System;
 
 with System.Storage_Elements;
 with STM32_SVD.USB; use STM32_SVD.USB;
+with STM32_SVD.RCC; use STM32_SVD.RCC;
 
 --  handcrafted view for BTable that can be viewed as registers (but are living
 --  in packet buffer memory)
@@ -41,6 +42,12 @@ package body STM32.USB_Device is
    overriding
    procedure Initialize (This : in out UDC) is
    begin
+     --  Should be UBSEN but SVD is wrong. Should fix it.
+     RCC_Periph.APB1ENR.USBRST := True;
+
+     RCC_Periph.APB1RSTR.USBRST := True;
+     RCC_Periph.APB1RSTR.USBRST := False;
+
      USB_Periph.CNTR.PDWN := False;
 
      -- wait a bit
