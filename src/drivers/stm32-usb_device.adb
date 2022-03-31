@@ -17,7 +17,7 @@ package body STM32.USB_Device is
    --  Do it manually here.
   type EPR_Register is new EP0R_Register;
 
-   type EPR_Registers is
+  type EPR_Registers is
      array (UInt4 range 0 .. Num_Endpoints - 1)
      of EPR_Register
      with Size => 32 * Num_Endpoints;
@@ -115,14 +115,21 @@ package body STM32.USB_Device is
                          WKUPM => True,
                          CTRM => True);
 
-     UPR := (EP0R with delta
-              CTR_RX => True,
-              EP_KIND => False,
-              EP_TYPE => 1,
-              EA => 0,
-              STAT_TX => EP0R.STAT_TX xor 0,
-              STAT_RX => EP0R.STAT_RX xor 3
-              );
+     --  Provision buffer for CONTROL EP0
+     -- Btable(0).COUNT_RX.NUM_BLOCK := 64 / 2;
+     -- Btable(0).COUNT_RX.BL_SIZE := 0;
+     -- Btable(0).ADDR_RX.ADDRN_RX := UInt14 (Num_Endpoints * 8);
+
+     -- Btable(0).ADDR_TX.ADDRN_TX := UInt14 (Num_Endpoints * 8 + 64);
+
+     -- UPR := (EP0R with delta
+     --          CTR_RX => True,
+     --          EP_KIND => False,
+     --          EP_TYPE => 1,
+     --          EA => 0,
+     --          STAT_TX => EP0R.STAT_TX xor 0,
+     --          STAT_RX => EP0R.STAT_RX xor 3
+     --          );
 
      Reset_ISTR;
 
@@ -174,7 +181,7 @@ package body STM32.USB_Device is
                            );
        USB_Periph.CNTR.FSUSP := False;
        raise Program_Error with "not handled correctly yet";
-     elsif Istr.RESET then
+     elsif Istr.RESET or else This.In_Reset then
        --  Clear RESET by writing 0. Writing 1 in other fields leave them unchanged.
        USB_Periph.ISTR := (Istr with delta
                            L1REQ => True,
@@ -186,6 +193,7 @@ package body STM32.USB_Device is
                            ERR => True,
                            PMAOVR => True
                            );
+       This.In_Reset := False;
        return (Kind => USB.HAL.Device.Reset);
      elsif Istr.SUSP then
        --  Clear SUSP by writing 0. Writing 1 in other fields leave them unchanged.
