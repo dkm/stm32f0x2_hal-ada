@@ -83,24 +83,32 @@ private
        Alignment : Natural)
        return Packet_Buffer_Offset;
 
-   procedure Copy_Endpoint_Buffer
-     (This : in out UDC;
-      Num  : USB.EP_Id;
-      Dir  : USB.EP_Dir);
+   --  procedure Copy_Endpoint_Buffer
+   --    (This : in out UDC;
+   --     Num  : USB.EP_Id;
+   --     Dir  : USB.EP_Dir);
+
 
    type Endpoint_Status is record
-      Addr           : System.Address := System.Null_Address;
-      Next_PID       : Boolean := False;
-      Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+      -- Next_PID       : Boolean := False;
+      Tx_Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+
+      Rx_Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+      --  Buffer in Packet memory
+
+      Rx_User_Buffer_Address  : System.Address := System.Null_Address;
+      --  Buffer where user expect recvd data to be store
+
+      Typ : EP_Type := Bulk;
    end record;
 
-   type Endpoint_Status_Array is array (USB.EP_Id, USB.EP_Dir) of Endpoint_Status;
+   type Endpoint_Status_Array is array (USB.EP_Id) of Endpoint_Status;
    type UDC
    is new USB_Device_Controller with record
      --  4 16-bits words per AP (ADDR_TX + COUNT_TX + ADDR_RX + COUNT_RX)
      --  NOPE: 128 bytes statically reserved for EP0 buffers. Maybe too much. 64 bytes is the minimum for USB FS control.
      Next_Buffer : Packet_Buffer_Offset :=  System.Storage_Elements.Storage_Offset (Num_Endpoints * 8);
-     EP_Status   : Endpoint_Status_Array := (others => (others => <>));
+     EP_Status   : Endpoint_Status_Array := (others => <>);
      In_Reset    : Boolean := True;
    end record;
 end STM32.USB_Device;
