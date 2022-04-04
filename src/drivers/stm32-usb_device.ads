@@ -100,6 +100,7 @@ private
       --  Buffer where user expect recvd data to be store
 
       Typ : EP_Type := Bulk;
+      Valid : Boolean := False;
    end record;
 
    type Endpoint_Status_Array is array (USB.EP_Id) of Endpoint_Status;

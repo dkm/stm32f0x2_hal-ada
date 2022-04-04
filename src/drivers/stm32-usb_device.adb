@@ -130,22 +130,22 @@ package body STM32.USB_Device is
    procedure Start (This : in out UDC) is
    begin
 
-     USB_Periph.CNTR := (FRES => False,
+     This.In_Reset := True;
+
+     USB_Periph.CNTR := (USB_Periph.CNTR with delta
+                         FRES => False,
                          RESETM => True,
                          SUSPM => True,
                          WKUPM => True,
-                         CTRM => True,
-                         others => <>);
+                         CTRM => True);
 
      Reset_ISTR;
 
+     --  Most likely all invalid
      for Ep in EPR_Registers'Range loop
        This.EP_Start (EP);
 
      end loop;
-
-     --  Enable Pull Up for Full Speed
-     USB_Periph.BCDR.DPPU := True;
 
    end Start;
 
@@ -159,9 +159,8 @@ package body STM32.USB_Device is
        This.EP_Start (EP);
      end loop;
 
-     --  Should do part of Initialize
-     --  Loop over EP and reconfigure them.
-     null;
+     --  Enable Pull Up for Full Speed
+     USB_Periph.BCDR.DPPU := True;
    end Reset;
 
   procedure Clear_Ctr_Tx (Ep : EP_Id ) is
@@ -354,6 +353,8 @@ package body STM32.USB_Device is
      end if;
      This.EP_Status (EP.Num).Typ := Typ;
 
+     This.EP_Status (EP.Num).Valid := True;
+
      UPR := (Get_EPR_With_Invariant (Cur) with delta
              CTR_RX => False,
              CTR_TX => False,
@@ -396,12 +397,17 @@ package body STM32.USB_Device is
     UPR: EPR_Register renames EPRS (Ep);
     Cur : EPR_Register := UPR;
 
+    --  Set to NAK if needed. Leave DISABLED otherwise.
     Stat_Tx : UInt2 := (if Btable (Ep).ADDR_TX.ADDRN_TX /= 0 then 2 else 0);
-    Stat_Rx : UInt2 := (if Btable (Ep).ADDR_RX.ADDRN_RX /= 0 then 3 else 0);
+
+    --  Set to STALL if needed. Leave DISABLED otherwise
+    Stat_Rx : UInt2 := (if Btable (Ep).ADDR_RX.ADDRN_RX /= 0 then 1 else 0);
   begin
-    UPR := (Get_EPR_With_Invariant (Cur) with delta
-            STAT_TX => Stat_Tx,
-            STAT_RX => Stat_Rx);
+    if This.EP_Status (Ep).Valid then
+      UPR := (Get_EPR_With_Invariant (Cur) with delta
+              STAT_TX => Cur.STAT_TX xor Stat_Tx,
+              STAT_RX => Cur.STAT_RX xor Stat_Rx);
+    end if;
   end EP_Start;
 
    overriding
@@ -427,8 +433,9 @@ package body STM32.USB_Device is
        UPR := (Get_EPR_With_Invariant (Cur) with delta
                STAT_RX => Cur.STAT_RX xor 3);
      else
+       --  Set to NAK if not ready (why is it needed??)
        UPR := (Get_EPR_With_Invariant (Cur) with delta
-               STAT_RX => Cur.STAT_RX xor 0);
+               STAT_RX => Cur.STAT_RX xor 1);
      end if;
 
    end EP_Ready_For_Data;
