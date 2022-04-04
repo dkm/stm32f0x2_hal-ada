@@ -30,7 +30,7 @@ package body STM32.USB_Device is
    function Get_EPR_With_Invariant (Current : EPR_Register) return EPR_Register;
 
    procedure EP_Configure (This : in out UDC;
-                           EP   : EP_Addr);
+                           EP   : EP_Id);
 
    procedure EP_Start (This : in out UDC;
                        EP   : EP_Id);
@@ -130,7 +130,7 @@ package body STM32.USB_Device is
    procedure Start (This : in out UDC) is
    begin
 
-     This.In_Reset := True;
+     This.In_Reset := False;
 
      USB_Periph.CNTR := (USB_Periph.CNTR with delta
                          FRES => False,
@@ -141,11 +141,7 @@ package body STM32.USB_Device is
 
      Reset_ISTR;
 
-     --  Most likely all invalid
-     for Ep in EPR_Registers'Range loop
-       This.EP_Start (EP);
-
-     end loop;
+     This.Reset;
 
    end Start;
 
@@ -155,7 +151,8 @@ package body STM32.USB_Device is
    begin
      Reset_ISTR;
 
-     for Ep in EPR_Registers'Range loop
+     for Ep in EPR_Registers'range when This.EP_Status (EP).Valid loop
+       This.EP_Configure (EP);
        This.EP_Start (EP);
      end loop;
 
@@ -347,10 +344,15 @@ package body STM32.USB_Device is
        Interrupt => 3);
 
      Cur : EPR_Register := UPR;
+
+     U : System.Address;
    begin
      if Ep.Num > Num_Endpoints then
        raise Program_Error with "Invalid endpoint number";
      end if;
+
+     U := This.Request_Buffer (Ep, UInt11 (Max_Size), 1);
+
      This.EP_Status (EP.Num).Typ := Typ;
 
      This.EP_Status (EP.Num).Valid := True;
@@ -367,9 +369,9 @@ package body STM32.USB_Device is
    end EP_Setup;
 
    procedure EP_Configure (This : in out UDC;
-                           EP   : EP_Addr)
+                           EP   : EP_Id)
    is
-     UPR: EPR_Register renames EPRS (Ep.Num);
+     UPR: EPR_Register renames EPRS (Ep);
 
      type EP_Type_Mapping_T is array (EP_Type) of UInt2;
      EPM : constant EP_Type_Mapping_T := (
@@ -379,31 +381,43 @@ package body STM32.USB_Device is
        Interrupt => 3);
 
      Cur : EPR_Register := UPR;
-     Typ : EP_Type := This.EP_Status (EP.Num).Typ;
+     Typ : EP_Type := This.EP_Status (EP).Typ;
 
    begin
-     UPR := (Get_EPR_With_Invariant (Cur) with delta
-             CTR_RX => False,
-             CTR_TX => False,
-             EP_KIND => False,
-             EA => EP.Num,
-             EP_TYPE => EPM (Typ)
-             );
+     if This.EP_Status (Ep).Valid then
+       UPR := (Get_EPR_With_Invariant (Cur) with delta
+               CTR_RX => False,
+               CTR_TX => False,
+               EP_KIND => False,
+               EA => EP,
+               EP_TYPE => EPM (Typ));
+     end if;
    end EP_Configure;
 
   procedure EP_Start (This : in out UDC;
                       EP   : EP_Id)
   is
+    use System.Storage_Elements;
+    use System;
+
     UPR: EPR_Register renames EPRS (Ep);
     Cur : EPR_Register := UPR;
+
+    Pending_RX : Boolean := This.EP_Status (Ep).Rx_User_Buffer_Address /= System.Null_Address;
 
     --  Set to NAK if needed. Leave DISABLED otherwise.
     Stat_Tx : UInt2 := (if Btable (Ep).ADDR_TX.ADDRN_TX /= 0 then 2 else 0);
 
-    --  Set to STALL if needed. Leave DISABLED otherwise
-    Stat_Rx : UInt2 := (if Btable (Ep).ADDR_RX.ADDRN_RX /= 0 then 1 else 0);
+    --  Set to STALL/VALID if needed. Leave DISABLED otherwise
+    Stat_Rx : UInt2 := (if Btable (Ep).ADDR_RX.ADDRN_RX /= 0 then 2 else 0);
   begin
     if This.EP_Status (Ep).Valid then
+
+      if Stat_Rx /= 0 and then Pending_RX
+      then
+         Stat_Rx := 3;
+      end if;
+
       UPR := (Get_EPR_With_Invariant (Cur) with delta
               STAT_TX => Cur.STAT_TX xor Stat_Tx,
               STAT_RX => Cur.STAT_RX xor Stat_Rx);

@@ -27,9 +27,10 @@ package body STM32.Device is
      Tmp : UInt32 := 1 + Cycles / 2;
    begin
      Asm ("1:" & LF & HT &
-          "sub r3, #1" &LF & HT &
+          "sub %0, #1" &LF & HT &
           "bne 1b" & LF & HT,
           Inputs => (UInt32'Asm_Input ("r", Tmp)),
+          Clobber => "r3",
           Volatile => True);
    end;
 
