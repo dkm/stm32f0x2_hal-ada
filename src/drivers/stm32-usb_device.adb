@@ -99,6 +99,12 @@ package body STM32.USB_Device is
       Use_32b_block : Boolean := False;
       Num_Blocks : Natural := 0;
 
+      AddrTx : USB_ADDRN_TX_Register;
+      CountTx : USB_COUNTN_TX_Register;
+
+      AddrRx : USB_ADDRN_RX_Register;
+      CountRx : USB_COUNTN_RX_Register;
+
    begin
       --  buffers must be half-word aligned (16-bits)
       Alignment := Alignment and (not 16#F#);
@@ -111,11 +117,18 @@ package body STM32.USB_Device is
 
       case EP.Dir is
         when EP_In =>
-          Btable (Ep.Num).ADDR_TX.ADDRN_TX := UInt14 (Offset);
+
+          AddrTx := (ADDRN_TX => UInt14 (Offset/2),
+                     others => 0);
+
+          Btable (Ep.Num).ADDR_TX := AddrTx;
+
           This.EP_Status (Ep.Num).Tx_Buffer_Address := Offset;
 
         when EP_Out =>
-          Btable (Ep.Num).ADDR_RX.ADDRN_RX := UInt14 (Offset);
+          AddrRx.ADDRN_RX := UInt14 (Offset/2);
+          Btable (Ep.Num).ADDR_RX := AddrRx;
+
           if Len <= 62 then
             Num_Blocks := Integer(Len) / 2;
           else
@@ -123,8 +136,11 @@ package body STM32.USB_Device is
             Use_32b_block := True;
           end if;
 
-          Btable (Ep.Num).COUNT_RX.BL_SIZE := Bit (if Use_32b_block then 1 else 0);
-          Btable (Ep.Num).COUNT_RX.NUM_BLOCK := UInt5 (Num_Blocks);
+          CountRx := (BL_SIZE =>Bit (if Use_32b_block then 1 else 0),
+                      NUM_BLOCK => UInt5 (Num_Blocks),
+                      others => 0);
+
+          Btable (Ep.Num).COUNT_RX := CountRx;
 
           This.EP_Status (Ep.Num).Rx_Buffer_Address := Offset;
       end case;
@@ -214,7 +230,7 @@ package body STM32.USB_Device is
        Istr := (Neutral_Istr with delta
                            SUSP => False  -- Clear
                            );
-       raise Program_Error with "not correctly handled yet";
+       --  raise Program_Error with "not correctly handled yet";
      elsif Istr.CTR then
        declare
          EP_Id : UInt4 := Istr.EP_ID;
