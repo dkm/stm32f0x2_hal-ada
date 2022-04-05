@@ -27,6 +27,10 @@ package body STM32.USB_Device is
    EPRS : aliased EPR_Registers
      with Import, Address => USB_Periph.EP0R'Address;
 
+  function Endpoint_Buffer_Address
+    (Ep : USB.EP_Addr)
+    return System.Address;
+
    function Get_EPR_With_Invariant (Current : EPR_Register) return EPR_Register;
 
    procedure EP_Configure (This : in out UDC;
@@ -69,13 +73,15 @@ package body STM32.USB_Device is
      USB_Periph.CNTR.PDWN := False;
      Delay_Cycles (72);
 
-     USB_Periph.CNTR := (USB_Periph.CNTR with delta
-                         FRES => True);
+     -- Reset_ISTR;
 
-     USB_Periph.CNTR := (FRES => False,
-                         PDWN => False,
-                         others => <>);
-     USB_Periph.BTABLE.BTABLE := 0;
+     -- USB_Periph.CNTR := (USB_Periph.CNTR with delta
+     --                     FRES => True);
+
+     -- USB_Periph.CNTR := (FRES => False,
+     --                     PDWN => False,
+     --                     others => <>);
+     -- USB_Periph.BTABLE.BTABLE := 0;
 
    end Initialize;
 
@@ -130,18 +136,16 @@ package body STM32.USB_Device is
    procedure Start (This : in out UDC) is
    begin
 
-     This.In_Reset := False;
-
      USB_Periph.CNTR := (USB_Periph.CNTR with delta
                          FRES => False,
                          RESETM => True,
                          SUSPM => True,
                          WKUPM => True,
                          CTRM => True);
-
      Reset_ISTR;
 
-     This.Reset;
+     --  Enable Pull Up for Full Speed
+     USB_Periph.BCDR.DPPU := True;
 
    end Start;
 
@@ -149,6 +153,8 @@ package body STM32.USB_Device is
    procedure Reset (This : in out UDC)
    is
    begin
+     This.Set_Address (0);
+
      Reset_ISTR;
 
      for Ep in EPR_Registers'range when This.EP_Status (EP).Valid loop
@@ -156,8 +162,6 @@ package body STM32.USB_Device is
        This.EP_Start (EP);
      end loop;
 
-     --  Enable Pull Up for Full Speed
-     USB_Periph.BCDR.DPPU := True;
    end Reset;
 
   procedure Clear_Ctr_Tx (Ep : EP_Id ) is
@@ -178,49 +182,37 @@ package body STM32.USB_Device is
 
    overriding
    function Poll (This : in out UDC) return UDC_Event is
-     Istr : constant ISTR_Register := USB_Periph.ISTR;
+     --  Neutral ISTR register values
+     Neutral_Istr : constant ISTR_Register := (EP_ID => 0,
+                                               Reserved_5_6 => 0,
+                                               Reserved_16_31 => 0,
+                                               others => True);
+     Istr : ISTR_Register renames USB_Periph.ISTR;
    begin
-     if Istr.WKUP then
+
+     if Istr.RESET then
+        --  Clear RESET by writing 0. Writing 1 in other fields leave them unchanged.
+        Istr := (Neutral_Istr with delta
+                            RESET => False --  Clear
+                            );
+        --  This.In_Reset := False;
+        --  This.Reset;
+        return (Kind => USB.HAL.Device.Reset);
+
+     elsif Istr.WKUP then
        --  See rm0091 p871
 
        --  Clear WKUP by writing 0. Writing 1 in other fields leave them unchanged.
-       USB_Periph.ISTR := (Istr with delta
-                           L1REQ => True,
-                           ESOF => True,
-                           SOF => True,
-                           RESET => True,
-                           SUSP => True,
-                           WKUP => False, --  Clear
-                           ERR => True,
-                           PMAOVR => True
+       Istr := (Neutral_Istr with delta
+                           WKUP => False --  Clear
                            );
        USB_Periph.CNTR.FSUSP := False;
        raise Program_Error with "not handled correctly yet";
-     elsif Istr.RESET or else This.In_Reset then
-       --  Clear RESET by writing 0. Writing 1 in other fields leave them unchanged.
-       USB_Periph.ISTR := (Istr with delta
-                           L1REQ => True,
-                           ESOF => True,
-                           SOF => True,
-                           RESET => False, --  Clear
-                           SUSP => True,
-                           WKUP => True,
-                           ERR => True,
-                           PMAOVR => True
-                           );
-       This.In_Reset := False;
-       return (Kind => USB.HAL.Device.Reset);
+
      elsif Istr.SUSP then
        --  Clear SUSP by writing 0. Writing 1 in other fields leave them unchanged.
-       USB_Periph.ISTR := (Istr with delta
-                           L1REQ => True,
-                           ESOF => True,
-                           SOF => True,
-                           RESET => True,
-                           SUSP => False,  -- Clear
-                           WKUP => True,
-                           ERR => True,
-                           PMAOVR => True
+       Istr := (Neutral_Istr with delta
+                           SUSP => False  -- Clear
                            );
        raise Program_Error with "not correctly handled yet";
      elsif Istr.CTR then
@@ -238,10 +230,19 @@ package body STM32.USB_Device is
              Copy_Endpoint_Rx_Buffer (This, EP_Id);
 
              Clear_Ctr_Rx (EP_Id);  --  ACK the reception
-
-             return (Kind => Transfer_Complete,
-                     EP   => (UInt4 (EP_Id), EP_In),
-                     BCNT => UInt11 (EP_Data_Size));
+             if EPRS (EP_Id).SETUP then
+               declare
+                 Req : Setup_Data with Address => Endpoint_Buffer_Address ((EP_Id, EP_Out));
+               begin
+                 return (Kind => Setup_Request,
+                         Req => Req,
+                         Req_Ep => Ep_Id); --  Always EP 0
+               end;
+             else
+               return (Kind => Transfer_Complete,
+                       EP   => (UInt4 (EP_Id), EP_In),
+                       BCNT => UInt11 (EP_Data_Size));
+             end if;
 
            when EP_In =>
              --  IN transaction, TX from device PoV
