@@ -9,7 +9,6 @@ package STM32.USB_Btable is
   subtype ADDRN_TX_Field is HAL.UInt14;
 
   type USB_ADDRN_TX_Register is record
-    Reserved_0 : HAL.Bit := 16#0#;
     ADDRN_TX   : ADDRN_TX_Field := 16#0#;
 
   end record
@@ -17,8 +16,7 @@ package STM32.USB_Btable is
          Bit_Order => System.Low_Order_First;
 
   for USB_ADDRN_TX_Register use record
-    Reserved_0 at 0 range 0 .. 0;
-    ADDRN_TX   at 0 range 1 .. 15;
+    ADDRN_TX   at 0 range 0 .. 15;
   end record;
 
   subtype COUNTN_TX_Field is HAL.UInt10;
@@ -39,7 +37,6 @@ package STM32.USB_Btable is
   subtype ADDRN_RX_Field is HAL.UInt14;
 
   type USB_ADDRN_RX_Register is record
-    Reserved_0 : HAL.Bit        := 16#0#;
     ADDRN_RX   : ADDRN_RX_Field := 16#0#;
 
   end record
@@ -47,8 +44,7 @@ package STM32.USB_Btable is
          Bit_Order => System.Low_Order_First;
 
   for USB_ADDRN_RX_Register use record
-    Reserved_0 at 0 range 0 .. 0;
-    ADDRN_RX   at 0 range 1 .. 15;
+    ADDRN_RX   at 0 range 0 .. 15;
   end record;
 
   subtype COUNTN_RX_Field is HAL.UInt10;
