@@ -98,6 +98,7 @@ private
 
       Rx_User_Buffer_Address  : System.Address := System.Null_Address;
       --  Buffer where user expect recvd data to be store
+      Rx_User_Buffer_Len      : UInt32 := 0;
 
       Typ : EP_Type := Bulk;
       Valid : Boolean := False;

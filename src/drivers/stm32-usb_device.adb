@@ -9,16 +9,14 @@ with STM32.GPIO;    use STM32.GPIO;
 
 with STM32.USARTs;  use STM32.USARTs;
 
-
-
 --  handcrafted view for BTable that can be viewed as registers (but are living
 --  in packet buffer memory)
 
 with STM32.USB_Btable; use STM32.USB_Btable;
 
 package body STM32.USB_Device is
-    Log_Enabled : constant Boolean := False;
-
+    Log_Enabled : constant Boolean := True;
+    Log_Level : constant Integer := 2;
 
   -- DEBUG
     TX_Pin : constant GPIO_Point := PB6;
@@ -38,9 +36,9 @@ package body STM32.USB_Device is
       Transmit (This, UInt9 (Data));
     end Put_Blocking;
 
-    procedure Log (S : String) is
+    procedure Log (S : String; L: Integer := 1; Deindent : Integer := 0) is
     begin
-      if not Log_Enabled then
+      if not Log_Enabled or else L < Log_Level then
         return;
       end if;
 
@@ -53,7 +51,10 @@ package body STM32.USB_Device is
       end loop;
       Put_Blocking (USART_1, UInt16 (13)); -- CR
       Put_Blocking (USART_1, UInt16 (10)); -- LF
+
+      Indent := Indent + Deindent;
     end Log;
+
 
     procedure StartLog (S: String) is
     begin
@@ -320,6 +321,14 @@ package body STM32.USB_Device is
       return Res;
     end Istr_Image;
 
+    procedure Reset_EP_Status (This : in out UDC) is
+    begin
+      for Ep in EPR_Registers'range when This.EP_Status (EP).Valid loop
+        This.EP_Status (Ep).Rx_User_Buffer_Address := System.Null_Address;
+        This.EP_Status (Ep).Rx_User_Buffer_Len := 0;
+      end loop;
+    end Reset_EP_Status;
+
     function EPR_Image (Epr: EPR_Register) return String is
     begin
       return "EA:" & Epr.EA'Image &
@@ -351,13 +360,17 @@ package body STM32.USB_Device is
 
      if Cur_Istr.RESET then
         --  Clear RESET by writing 0. Writing 1 in other fields leave them unchanged.
+        Log ("## Reset", 2, -1);
+
         Log ("!! Reset RECEIVED");
         Log ("ISTR: " & Istr_Image (Cur_Istr));
+
+        This.Reset_EP_Status;
 
         Istr := (Neutral_Istr with delta
                  RESET => False --  Clear
                  );
-        --  This.In_Reset := False;
+
         --  This.Reset;
         return (Kind => USB.HAL.Device.Reset);
 
@@ -379,7 +392,7 @@ package body STM32.USB_Device is
        --  raise Program_Error with "not correctly handled yet";
 
      elsif Cur_Istr.CTR then
-       Log ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! CRT");
+       Log ("## CTR", 2);
        declare
          EP_Id : UInt4 := Istr.EP_ID;
          Dir   : EP_Dir := (if Cur_Istr.DIR then EP_Out else EP_In);
@@ -393,9 +406,11 @@ package body STM32.USB_Device is
              EP_Data_Size := Btable(Ep_Id).COUNT_RX.COUNTN_RX;
              Copy_Endpoint_Rx_Buffer (This, EP_Id);
 
-             Clear_Ctr_Rx (EP_Id);  --  ACK the reception
 
              if EPRS (EP_Id).SETUP then
+               Clear_Ctr_Rx (EP_Id);  --  ACK the reception
+
+               Log (" --> SETUP", 2, -1);
                declare
                  Req : Setup_Data with Address => Endpoint_Buffer_Address ((EP_Id, EP_Out));
                begin
@@ -404,6 +419,9 @@ package body STM32.USB_Device is
                          Req_Ep => Ep_Id); --  Always EP 0
                end;
              else
+               Clear_Ctr_Rx (EP_Id);  --  ACK the reception
+
+               Log (" --> TRANSFER OUT/RX OK", 2, -1);
                return (Kind => Transfer_Complete,
                        EP   => (UInt4 (EP_Id), EP_In),
                        BCNT => UInt11 (EP_Data_Size));
@@ -416,7 +434,7 @@ package body STM32.USB_Device is
              EP_Data_Size := Btable(Ep_Id).COUNT_TX.COUNTN_TX;
 
              Clear_Ctr_Tx (EP_Id);  -- ACK the transmission
-
+             Log (" --> TRANSFER IN/TX OK", 2, -1);
              return (Kind => Transfer_Complete,
                      EP   => (UInt4 (EP_Id), EP_In),
                      BCNT => UInt11 (EP_Data_Size));
@@ -461,10 +479,11 @@ package body STM32.USB_Device is
    begin
      StartLog ("> EP_Write_Packet " & Ep'Image & " from " & Addr'Image);
 
-     case Cur.STAT_TX is
-       when 0|3 => raise Program_Error with "Would block";
-       when others => null;
-     end case;
+     -- case Cur.STAT_TX is
+     --   when 0|3 => raise Program_Error with "Would block";
+     --   when others => null;
+     -- end case;
+
      Target := Source;
 
      Btable(Ep).COUNT_TX.COUNTN_TX := UInt10 (Len);
@@ -518,7 +537,8 @@ package body STM32.USB_Device is
 
      U : System.Address;
    begin
-     StartLog ("> EP_Setup " & EP.Num'Image & ", " & EP.Dir'Image & " Typ: " & EPM(Typ) & " Size: " & Max_Size'Image);
+     StartLog ("> EP_Setup " & EP.Num'Image & ", " & EP.Dir'Image
+               & " Typ: " & EPM(Typ) & " Size: " & Max_Size'Image);
 
      if Ep.Num > Num_Endpoints then
        raise Program_Error with "Invalid endpoint number";
@@ -579,6 +599,14 @@ package body STM32.USB_Device is
      if This.EP_Status (Ep).Valid then
        Log (" - " & EPR_Image (Cur));
 
+       --  Only set VALID if user has already called EP_Ready_For_Data with
+       --  valid buffer info. If not, NAK it.
+       if This.EP_Status (Ep).Rx_User_Buffer_Address = System.Null_Address
+         or else This.EP_Status (Ep).Rx_User_Buffer_Len = 0
+       then
+         Stat_Rx := 2;
+       end if;
+
        Cur := (Get_EPR_With_Invariant (Cur) with delta
                CTR_RX => False,
                CTR_TX => False,
@@ -638,27 +666,26 @@ package body STM32.USB_Device is
    is
      UPR: EPR_Register renames EPRS (Ep);
      Cur : EPR_Register := UPR;
-     --  Tmp : EPR_Register := Get_EPR_With_Invariant (Ep);
-
-     -- Status : UInt2 := UPR.STAT_TX;
-
    begin
 
-     StartLog ("> EP_Ready_For_Data " & EP'Image & " buf at " & Addr'Image & " len: " & Size'Image & " ready: " & Ready'Image);
+     StartLog ("> EP_Ready_For_Data " & EP'Image & " buf at "
+               & Addr'Image & " len: " & Size'Image & " ready: " & Ready'Image);
 
      --  Keep track of the user buffer where received data will be moved after
      --  reception.
      This.EP_Status (Ep).Rx_User_Buffer_Address := Addr;
+     This.EP_Status (Ep).Rx_User_Buffer_Len := Size;
 
-     -- if Ready then
-     --   --  Set STAT_RX to VALID (0b11) to enable data reception.
-     --   UPR := (Get_EPR_With_Invariant (Cur) with delta
-     --           STAT_RX => Cur.STAT_RX xor 3);
-     -- else
-     --   --  Set to NAK if not ready (why is it needed??)
-     --   UPR := (Get_EPR_With_Invariant (Cur) with delta
-     --           STAT_RX => Cur.STAT_RX xor 1);
-     -- end if;
+     if Ready then
+       --  Set STAT_RX to VALID (0b11) to enable data reception.
+       UPR := (Get_EPR_With_Invariant (Cur) with delta
+               STAT_RX => Cur.STAT_RX xor 3);
+     else
+       --  Set to NAK if not ready (why is it needed??)
+       UPR := (Get_EPR_With_Invariant (Cur) with delta
+               STAT_RX => Cur.STAT_RX xor 1);
+     end if;
+
      EndLog ("< EP_Ready_For_Data");
    end EP_Ready_For_Data;
 
