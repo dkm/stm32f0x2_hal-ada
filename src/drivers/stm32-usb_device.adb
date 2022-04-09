@@ -18,6 +18,9 @@ package body STM32.USB_Device is
     Log_Enabled : constant Boolean := True;
     Log_Level : constant Integer := 2;
 
+    --  Static_Setup_Req_Data : Setup_Data;
+    --  Static storage for storing Setup Request data coming from the Host.
+
   -- DEBUG
     TX_Pin : constant GPIO_Point := PB6;
     RX_Pin : constant GPIO_Point := PB7;
@@ -302,6 +305,17 @@ package body STM32.USB_Device is
               CTR_RX => False);
    end Clear_Ctr_Rx;
 
+    function Setup_Data_Image (R: Setup_Data) return String is
+    begin
+      return "SetupData Rtype: " &
+        "(Rec: " & R.RType.Recipient'Image & ", Typ:" & R.RType.Typ'Image & " Dir: " &
+        (if R.RType.Dir = Device_To_Host then "D2H" else "H2D" ) & ")," &
+        "Request: " & R.Request'Image & " ," &
+        "Value: " & R.Value'Image & " ," &
+        "Index: " & R.Index'Image & "," &
+        "Length: " & R.Length'Image;
+    end Setup_Data_Image;
+
     function Istr_Image (Istr: in ISTR_Register) return String is
       Res : String := "EPID: 00, DIR: XXX, L1R: 0, ESOF: 0, SOF: 0, RST: 0, SUSP: 0, WKUP: 0, ERR: 0, PMAOVR: 0, CTR: 0";
     begin
@@ -395,50 +409,59 @@ package body STM32.USB_Device is
        Log ("## CTR", 2);
        declare
          EP_Id : UInt4 := Istr.EP_ID;
-         Dir   : EP_Dir := (if Cur_Istr.DIR then EP_Out else EP_In);
+
          EP_Data_Size : UInt10;
 
        begin
-         case Dir is
-           when EP_Out =>
-             -- OUT transaction, RX from device PoV
-             -- Need to copy DATA from EP buffer to app buffer.
-             EP_Data_Size := Btable(Ep_Id).COUNT_RX.COUNTN_RX;
-             Copy_Endpoint_Rx_Buffer (This, EP_Id);
 
-
+         if EPRS (EP_Id).CTR_RX then
              if EPRS (EP_Id).SETUP then
                Clear_Ctr_Rx (EP_Id);  --  ACK the reception
 
-               Log (" --> SETUP", 2, -1);
                declare
                  Req : Setup_Data with Address => Endpoint_Buffer_Address ((EP_Id, EP_Out));
                begin
+                 Log (" --> SETUP " & Setup_Data_Image (Req), 2, -1);
+                 -- USB.Utils.Copy (Endpoint_Buffer_Address ((EP_Id, EP_Out)),
+                 --                 Static_Setup_Req_Data'Address, Natural (Static_Setup_Req_Data'Size));
+
                  return (Kind => Setup_Request,
                          Req => Req,
                          Req_Ep => Ep_Id); --  Always EP 0
                end;
              else
+
+               -- OUT transaction, RX from device PoV
+               -- Need to copy DATA from EP buffer to app buffer.
+               EP_Data_Size := Btable(Ep_Id).COUNT_RX.COUNTN_RX;
+               Copy_Endpoint_Rx_Buffer (This, EP_Id);
+
                Clear_Ctr_Rx (EP_Id);  --  ACK the reception
 
                Log (" --> TRANSFER OUT/RX OK", 2, -1);
                return (Kind => Transfer_Complete,
-                       EP   => (UInt4 (EP_Id), EP_In),
+                       EP   => (UInt4 (EP_Id), EP_Out),
                        BCNT => UInt11 (EP_Data_Size));
              end if;
+         end if;
 
-           when EP_In =>
-             --  IN transaction, TX from device PoV
-             --  Only need to ACK and report back the number of bytes sent.
+         if not EPRS (EP_Id).CTR_TX then
+           raise Program_Error with "CTR_TX should be set";
+         end if;
 
-             EP_Data_Size := Btable(Ep_Id).COUNT_TX.COUNTN_TX;
+         --  If we are here, then CTR_TX must be set.
 
-             Clear_Ctr_Tx (EP_Id);  -- ACK the transmission
-             Log (" --> TRANSFER IN/TX OK", 2, -1);
-             return (Kind => Transfer_Complete,
-                     EP   => (UInt4 (EP_Id), EP_In),
-                     BCNT => UInt11 (EP_Data_Size));
-         end case;
+         --  IN transaction, TX from device PoV
+         --  Only need to ACK and report back the number of bytes sent.
+
+         EP_Data_Size := Btable(Ep_Id).COUNT_TX.COUNTN_TX;
+
+         Clear_Ctr_Tx (EP_Id);  -- ACK the transmission
+         Log (" --> TRANSFER IN/TX OK (" & EP_Data_Size'Image & ")", 2, -1);
+         return (Kind => Transfer_Complete,
+                 EP   => (UInt4 (EP_Id), EP_In),
+                 BCNT => UInt11 (EP_Data_Size));
+
        end;
 
      end if;
@@ -517,6 +540,7 @@ package body STM32.USB_Device is
 
 
   --  Allocates an EP, but don't touch the HW yet.
+  --  In particular, DO NOT set it to ready state for RX.
    overriding
    procedure EP_Setup (This     : in out UDC;
                        EP       :        EP_Addr;
@@ -561,6 +585,10 @@ package body STM32.USB_Device is
      EndLog ("< EP_Setup");
    end EP_Setup;
 
+
+   --  Apply the EP_Status configuration.
+   --  NOTE: do not set RX to valid yet as application has not prepared
+   --  anything yet. Wait until EP_Ready_For_Data to set STAT_RX to VALID.
    procedure EP_Configure (This : in out UDC;
                            EP   : EP_Id)
    is
@@ -590,8 +618,8 @@ package body STM32.USB_Device is
      --  Set to NAK if needed. Leave DISABLED otherwise.
      Stat_Tx : UInt2 := (if Btable (Ep).ADDR_TX.ADDRN_TX /= 0 then 2 else 0);
 
-     --  Set to STALL/VALID if needed. Leave DISABLED otherwise
-     Stat_Rx : UInt2 := (if Btable (Ep).ADDR_RX.ADDRN_RX /= 0 then 3 else 0);
+     --  Set to STALL if needed. Leave DISABLED otherwise
+     Stat_Rx : UInt2 := (if Btable (Ep).ADDR_RX.ADDRN_RX /= 0 then 2 else 0);
 
    begin
      StartLog ("> EP_Configure " & EP'Image & " SRX " & Stat_Rx'Image & " STX " & Stat_Tx'Image);
@@ -599,13 +627,13 @@ package body STM32.USB_Device is
      if This.EP_Status (Ep).Valid then
        Log (" - " & EPR_Image (Cur));
 
-       --  Only set VALID if user has already called EP_Ready_For_Data with
-       --  valid buffer info. If not, NAK it.
-       if This.EP_Status (Ep).Rx_User_Buffer_Address = System.Null_Address
-         or else This.EP_Status (Ep).Rx_User_Buffer_Len = 0
-       then
-         Stat_Rx := 2;
-       end if;
+       -- --  Only set VALID if user has already called EP_Ready_For_Data with
+       -- --  valid buffer info. If not, NAK it.
+       -- if This.EP_Status (Ep).Rx_User_Buffer_Address = System.Null_Address
+       --   or else This.EP_Status (Ep).Rx_User_Buffer_Len = 0
+       -- then
+       --   Stat_Rx := 2;
+       -- end if;
 
        Cur := (Get_EPR_With_Invariant (Cur) with delta
                CTR_RX => False,
@@ -657,6 +685,10 @@ package body STM32.USB_Device is
   --   end if;
   -- end EP_Start;
 
+   --  Set the endpoint in a state ready for EP_Out/RX transactions.
+   --  NOTE: Maybe check the buffer address. Should be a user buffer
+   --  or a packet buffer address already assigned. We should not touch BTABLE
+   --  here.
    overriding
    procedure EP_Ready_For_Data (This  : in out UDC;
                                 EP    :        EP_Id;
