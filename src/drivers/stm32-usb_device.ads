@@ -108,8 +108,8 @@ private
    type UDC
    is new USB_Device_Controller with record
      --  4 16-bits words per AP (ADDR_TX + COUNT_TX + ADDR_RX + COUNT_RX)
-     --  NOPE: 128 bytes statically reserved for EP0 buffers. Maybe too much. 64 bytes is the minimum for USB FS control.
-     Next_Buffer : Packet_Buffer_Offset :=  System.Storage_Elements.Storage_Offset (Num_Endpoints * 8);
+     --  128 bytes statically reserved for EP0 buffers. Maybe too much. 64 bytes is the minimum for USB FS control.
+     Next_Buffer : Packet_Buffer_Offset :=  System.Storage_Elements.Storage_Offset (Num_Endpoints * 8 + 128);
      EP_Status   : Endpoint_Status_Array := (others => <>);
      In_Reset    : Boolean := True;
    end record;
