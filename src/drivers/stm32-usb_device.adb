@@ -16,7 +16,7 @@ with STM32.USB_Btable; use STM32.USB_Btable;
 
 package body STM32.USB_Device is
     Log_Enabled : constant Boolean := True;
-    Log_Level : constant Integer := 1;
+    Log_Level : constant Integer := 2;
 
     --  Static_Setup_Req_Data : Setup_Data;
     --  Static storage for storing Setup Request data coming from the Host.
@@ -171,6 +171,15 @@ package body STM32.USB_Device is
      USB_Periph.CNTR.PDWN := False;
      Delay_Cycles (72);
 
+       for M in 0 .. 1024 loop
+         declare
+           Packet_Memory : UInt8 with Address => Packet_Buffer_Base;
+         begin
+           Packet_Memory := 0;
+         end;
+       end loop;
+     USB_Periph.DADDR.EF := True;
+
      -- Reset_ISTR;
 
      -- USB_Periph.CNTR := (USB_Periph.CNTR with delta
@@ -279,6 +288,8 @@ package body STM32.USB_Device is
                          WKUPM => True,
                          CTRM => True);
      Reset_ISTR;
+
+     USB_Periph.BTABLE.BTABLE := 0;
 
      --  Enable Pull Up for Full Speed
      USB_Periph.BCDR.DPPU := True;
@@ -443,13 +454,16 @@ package body STM32.USB_Device is
          if EPRS (EP_Id).CTR_RX then
 
              if EPRS (EP_Id).SETUP then
-               Clear_Ctr_Rx (EP_Id);  --  ACK the reception
                Log ("EPR (clr): " & EPR_Image (EPRS(EP_Id)), 2);
                declare
-                 Req : Setup_Data with Address => Endpoint_Buffer_Address ((EP_Id, EP_Out));
+                 Req : Setup_Data;
                begin
+                 USB.Utils.Copy (Endpoint_Buffer_Address ((EP_Id, EP_Out)), Req'Address, Natural (Req'Size));
                  Log (" --> SETUP " & Setup_Data_Image (Req), 2, -1);
                  Endlog("## return Setup_Request");
+
+                 Clear_Ctr_Rx (EP_Id);  --  ACK the reception
+
                  return (Kind => Setup_Request,
                          Req => Req,
                          Req_Ep => Ep_Id); --  Always EP 0
@@ -483,7 +497,7 @@ package body STM32.USB_Device is
          EP_Data_Size := Btable(Ep_Id).COUNT_TX.COUNTN_TX;
 
          Clear_Ctr_Tx (EP_Id);  -- ACK the transmission
-         Log (" --> TRANSFER IN/TX OK (" & EP_Data_Size'Image & ")", 2);
+         Log (" --> TRANSFER IN/TX OK (" & EP_Data_Size'Image & ")");
          Endlog ("## return Transfer_Complete");
          return (Kind => Transfer_Complete,
                  EP   => (UInt4 (EP_Id), EP_In),
