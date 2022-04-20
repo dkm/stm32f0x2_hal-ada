@@ -6,7 +6,7 @@ with System;
 package STM32.USB_Btable is
 
   --  TX
-  subtype ADDRN_TX_Field is HAL.UInt14;
+  subtype ADDRN_TX_Field is HAL.UInt16;
 
   type USB_ADDRN_TX_Register is record
     ADDRN_TX   : ADDRN_TX_Field := 16#0#;
@@ -34,7 +34,7 @@ package STM32.USB_Btable is
   end record;
 
   --  RX
-  subtype ADDRN_RX_Field is HAL.UInt14;
+  subtype ADDRN_RX_Field is HAL.UInt16;
 
   type USB_ADDRN_RX_Register is record
     ADDRN_RX   : ADDRN_RX_Field := 16#0#;
@@ -69,7 +69,7 @@ package STM32.USB_Btable is
     ADDR_RX  : USB_ADDRN_RX_Register;
     COUNT_RX : USB_COUNTN_RX_Register;
   end record
-    with Object_Size => 64,
+    with Volatile, Object_Size => 64,
          Bit_Order => System.Low_Order_First;
 
   for EP_Group use record
