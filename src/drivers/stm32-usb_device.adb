@@ -18,12 +18,12 @@ package body STM32.USB_Device is
     Log_Enabled : constant Boolean := False;
     Log_Level : constant Integer := 2;
 
-    type Vol_Byte is new Interfaces.Unsigned_8 with Volatile_Full_Access;
-    type Vol_Byte_Array is array (Natural range <>) of Vol_Byte;
+    type Vol_2Byte is new Interfaces.Unsigned_16 with Volatile_Full_Access;
+    type Vol_2Byte_Array is array (Natural range <>) of Vol_2Byte;
 
     procedure Byte_Copy (Src, Dst : System.Address; Count : Natural) is
-      Src_Arr : Vol_Byte_Array (1 .. Count) with Address => Src;
-      Dst_Arr : Vol_Byte_Array (1 .. Count) with Address => Dst;
+      Src_Arr : Vol_2Byte_Array (1 .. Count/2) with Address => Src;
+      Dst_Arr : Vol_2Byte_Array (1 .. Count/2) with Address => Dst;
     begin
       -- for I in Src_Arr'range loop
       --   Dst_Arr(I) := Src_Arr (I);
