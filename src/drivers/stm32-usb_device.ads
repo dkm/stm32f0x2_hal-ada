@@ -107,6 +107,8 @@ private
    type Endpoint_Status_Array is array (USB.EP_Id) of Endpoint_Status;
    type UDC
    is new USB_Device_Controller with record
+
+     Alloc : Standard.USB.Utils.Basic_RAM_Allocator (64);
      --  4 16-bits words per AP (ADDR_TX + COUNT_TX + ADDR_RX + COUNT_RX)
      --  128 bytes statically reserved for EP0 buffers. Maybe too much. 64 bytes is the minimum for USB FS control.
      Next_Buffer : Packet_Buffer_Offset :=  System.Storage_Elements.Storage_Offset (Num_Endpoints * 8 + 128);

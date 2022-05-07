@@ -16,19 +16,20 @@ with STM32.USB_Btable; use STM32.USB_Btable;
 
 package body STM32.USB_Device is
     Log_Enabled : constant Boolean := False;
-    Log_Level : constant Integer := 2;
+    Log_Level : constant Integer := 3;
 
     type Vol_2Byte is new Interfaces.Unsigned_16 with Volatile_Full_Access;
     type Vol_2Byte_Array is array (Natural range <>) of Vol_2Byte;
 
     procedure Byte_Copy (Src, Dst : System.Address; Count : Natural) is
-      Src_Arr : Vol_2Byte_Array (1 .. Count/2) with Address => Src;
-      Dst_Arr : Vol_2Byte_Array (1 .. Count/2) with Address => Dst;
+      use System.Storage_Elements;
+      use System;
+      Src_Arr : Vol_2Byte_Array (1 .. (Count+1)/2) with Address => Src;
+      Dst_Arr : Vol_2Byte_Array (1 .. (Count+1)/2) with Address => Dst;
     begin
-      -- for I in Src_Arr'range loop
-      --   Dst_Arr(I) := Src_Arr (I);
-      -- end loop;
-      Dst_Arr := Src_Arr;
+      if Src /= Dst then
+        Dst_Arr := Src_Arr;
+      end if;
     end Byte_Copy;
 
     --  Static_Setup_Req_Data : Setup_Data;
@@ -222,25 +223,21 @@ package body STM32.USB_Device is
      EndLog ("< Initialize");
    end Initialize;
 
-   overriding
-   function Request_Buffer (This          : in out UDC;
-                            Ep            :        EP_Addr;
-                            Len           :        UInt11;
-                            Min_Alignment :        UInt8 := 1)
-                            return System.Address
+   procedure Allocate_Endpoint_Buffer (This : in out UDC;
+                                       Ep : EP_Addr;
+                                       Len : UInt11)
    is
-      use System.Storage_Elements;
-      Offset    : Packet_Buffer_Offset;
-      Alignment : UInt32 := UInt32 (Min_Alignment);
+     use System.Storage_Elements;
+     Offset    : Packet_Buffer_Offset;
 
-      Use_32b_block : Boolean := False;
-      Num_Blocks : Natural := 0;
+     Use_32b_block : Boolean := False;
+     Num_Blocks : Natural := 0;
 
-      AddrTx : USB_ADDRN_TX_Register;
-      CountTx : USB_COUNTN_TX_Register;
+     AddrTx : USB_ADDRN_TX_Register;
+     CountTx : USB_COUNTN_TX_Register;
 
-      AddrRx : USB_ADDRN_RX_Register;
-      CountRx : USB_COUNTN_RX_Register;
+     AddrRx : USB_ADDRN_RX_Register;
+     CountRx : USB_COUNTN_RX_Register;
 
    begin
       StartLog ("> Request buffer " & Ep.Num'Image & ", Dir " & EP.Dir'Image & " Len: " & Len'Image);
@@ -256,15 +253,8 @@ package body STM32.USB_Device is
         end if;
 
       else
-
-        --  buffers must be half-word aligned (16-bits)
-        Alignment := Alignment and (not 16#F#);
-
-        if Alignment = 0 or Alignment < UInt32 (Min_Alignment) then
-          Alignment := Alignment + 16;
-        end if;
-
-        Offset := Allocate_Buffer (This, Natural (Len), Natural (Alignment));
+        --  In EP memory, always align on half-words
+        Offset := Allocate_Buffer (This, Natural (Len), 16);
       end if;
 
       case EP.Dir is
@@ -302,8 +292,96 @@ package body STM32.USB_Device is
 
       end case;
 
+      EndLog ("< Allocate Endpoint Buffer");
+   end Allocate_Endpoint_Buffer;
+
+   overriding
+   function Request_Buffer (This          : in out UDC;
+                            Ep            :        EP_Addr;
+                            Len           :        UInt11;
+                            Min_Alignment :        UInt8 := 1)
+                            return System.Address
+   is
+      -- use System.Storage_Elements;
+      -- Offset    : Packet_Buffer_Offset;
+      -- Alignment : UInt32 := UInt32 (Min_Alignment);
+
+      -- Use_32b_block : Boolean := False;
+      -- Num_Blocks : Natural := 0;
+
+      -- AddrTx : USB_ADDRN_TX_Register;
+      -- CountTx : USB_COUNTN_TX_Register;
+
+      -- AddrRx : USB_ADDRN_RX_Register;
+      -- CountRx : USB_COUNTN_RX_Register;
+
+   begin
+      StartLog ("> Request buffer " & Ep.Num'Image & ", Dir " & EP.Dir'Image & " Len: " & Len'Image);
+
+      -- if Ep.Num = 0 then
+
+      --   --  Use the first Packet Memory for Control EP, always.
+
+      --   if Ep.Dir = EP_Out then
+      --     Offset := Num_Endpoints * 8;
+      --   else
+      --     Offset := Num_Endpoints * 8 + 64;
+      --   end if;
+
+      -- else
+
+      --   --  buffers must be half-word aligned (16-bits)
+      --   Alignment := Alignment and (not 16#F#);
+
+      --   if Alignment = 0 or Alignment < UInt32 (Min_Alignment) then
+      --     Alignment := Alignment + 16;
+      --   end if;
+
+      --   Offset := Allocate_Buffer (This, Natural (Len), Natural (Alignment));
+      -- end if;
+
+      -- case EP.Dir is
+      --   when EP_In =>
+
+      --     AddrTx := (ADDRN_TX => UInt16 (Offset));
+
+      --     Log ("ADDR_TX at " & Btable (Ep.Num).ADDR_TX'Address'Image);
+      --     Btable (Ep.Num).ADDR_TX := AddrTx;
+
+      --     This.EP_Status (Ep.Num).Tx_Buffer_Address := Offset;
+
+      --   when EP_Out =>
+      --     AddrRx.ADDRN_RX := UInt16 (Offset);
+
+      --     Log ("ADDR_RX at " & Btable (Ep.Num).ADDR_RX'Address'Image);
+
+      --     Btable (Ep.Num).ADDR_RX := AddrRx;
+
+      --     if Len <= 62 then
+      --       Num_Blocks := Integer(Len) / 2;
+      --     else
+      --       Num_Blocks := Integer (Len) / 32;
+      --       Use_32b_block := True;
+      --     end if;
+
+      --     CountRx := (BL_SIZE =>Bit (if Use_32b_block then 1 else 0),
+      --                 NUM_BLOCK => UInt5 (Num_Blocks),
+      --                 others => 0);
+
+      --     Log ("COUNT_RX at " & Btable (Ep.Num).COUNT_RX'Address'Image);
+      --     Btable (Ep.Num).COUNT_RX := CountRx;
+
+      --     This.EP_Status (Ep.Num).Rx_Buffer_Address := Offset;
+
+      -- end case;
+
       EndLog ("< Request buffer");
-      return Packet_Buffer_Base + Offset;
+
+      return Standard.USB.Utils.Allocate
+        (This.Alloc,
+         Alignment => UInt8'Max (Min_Alignment, 4),
+         Len       => Len);
+      --  return Packet_Buffer_Base + Offset;
    end Request_Buffer;
 
    overriding
@@ -579,7 +657,7 @@ package body STM32.USB_Device is
       Cur : EPR_Register := UPR;
 
    begin
-     StartLog ("> EP_Write_Packet " & Ep'Image & " from " & Addr'Image);
+     StartLog ("> EP_Write_Packet " & Ep'Image & " from " & Addr'Image, 3);
 
      -- case Cur.STAT_TX is
      --   when 0|3 => raise Program_Error with "Would block";
@@ -603,7 +681,8 @@ package body STM32.USB_Device is
      --  Set STAT_TX to VALID
      UPR := (Get_EPR_With_Invariant (Cur) with delta
              STAT_TX => Cur.STAT_TX xor 3);
-     EndLog ("< EP_Write_Packet");
+
+     EndLog ("< EP_Write_Packet", 3);
    end EP_Write_Packet;
 
    function Get_EPR_With_Invariant (Current: EPR_Register) return EPR_Register
@@ -655,7 +734,7 @@ package body STM32.USB_Device is
 
      Cur : EPR_Register := UPR;
      Tmp : EPR_Register;
-     U : System.Address;
+
    begin
      StartLog ("> EP_Setup " & EP.Num'Image & ", " & (if EP.Dir = EP_In then "IN" else "OUT")
                & " Typ: " & EPM2(Typ) & " Size: " & Max_Size'Image);
@@ -664,8 +743,8 @@ package body STM32.USB_Device is
        raise Program_Error with "Invalid endpoint number";
      end if;
 
-     --  Sets ADDR for RX/TX
-     U := This.Request_Buffer (Ep, UInt11 (Max_Size), 1);
+     --  Sets ADDR for RX/TX and update BTABLE accordingly
+     This.Allocate_Endpoint_Buffer (Ep, UInt11 (Max_Size));
 
      This.EP_Status (EP.Num).Typ := Typ;
      This.EP_Status (EP.Num).Valid := True;
@@ -788,7 +867,7 @@ package body STM32.USB_Device is
   --   --  Set to STALL/VALID if needed. Leave DISABLED otherwise
   --   Stat_Rx : UInt2 := (if Btable (Ep).ADDR_RX.ADDRN_RX /= 0 then 2 else 0);
   -- begin
-  --   if This.EP_Status (Ep).Valid then
+  --   if  This.EP_Status (Ep).Valid then
 
   --     if Stat_Rx /= 0 and then Pending_RX
   --     then
