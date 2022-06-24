@@ -1,5 +1,5 @@
 with "config/stm32f0x2_hal_config.gpr";
-with "cortex_m0.gpr";
+--- with "cortex_m0.gpr";
 
 project Stm32f0x2_Hal is
 

@@ -298,8 +298,7 @@ package body STM32.USB_Device is
    overriding
    function Request_Buffer (This          : in out UDC;
                             Ep            :        EP_Addr;
-                            Len           :        UInt11;
-                            Min_Alignment :        UInt8 := 1)
+                            Len           :        USB.Packet_Size)
                             return System.Address
    is
       -- use System.Storage_Elements;
@@ -379,7 +378,7 @@ package body STM32.USB_Device is
 
       return Standard.USB.Utils.Allocate
         (This.Alloc,
-         Alignment => UInt8'Max (Min_Alignment, 4),
+         Alignment => 4,
          Len       => Len);
       --  return Packet_Buffer_Base + Offset;
    end Request_Buffer;
@@ -596,7 +595,7 @@ package body STM32.USB_Device is
                Endlog("## return Transfer_Complete");
                return (Kind => Transfer_Complete,
                        EP   => (UInt4 (EP_Id), EP_Out),
-                       BCNT => UInt11 (EP_Data_Size));
+                       BCNT => USB.Packet_Size (EP_Data_Size));
              end if;
          end if;
 
@@ -616,7 +615,7 @@ package body STM32.USB_Device is
          Endlog ("## return Transfer_Complete");
          return (Kind => Transfer_Complete,
                  EP   => (UInt4 (EP_Id), EP_In),
-                 BCNT => UInt11 (EP_Data_Size));
+                 BCNT => USB.Packet_Size (EP_Data_Size));
 
        end;
 
@@ -642,10 +641,9 @@ package body STM32.USB_Device is
    end Endpoint_Buffer_Address;
 
    overriding
-   procedure EP_Write_Packet (This : in out UDC;
+   procedure EP_Send_Packet (This : in out UDC;
                               Ep   :        EP_Id;
-                              Addr :        System.Address;
-                              Len  :        UInt32)
+                              Len  :        USB.Packet_Size)
    is
       -- use System.Storage_Elements;
       -- Source : Storage_Array (1 .. Storage_Offset (Len))
@@ -657,7 +655,7 @@ package body STM32.USB_Device is
       Cur : EPR_Register := UPR;
 
    begin
-     StartLog ("> EP_Write_Packet " & Ep'Image & " from " & Addr'Image, 3);
+     StartLog ("> EP_Send_Packet " & Ep'Image, 3);
 
      -- case Cur.STAT_TX is
      --   when 0|3 => raise Program_Error with "Would block";
@@ -670,9 +668,11 @@ package body STM32.USB_Device is
        raise Program_Error with "Would block";
      end if;
 
-     Byte_Copy (Addr,
-                Endpoint_Buffer_Address ((Ep, USB.EP_In)),
-                Natural(Len));
+
+     -- FIXME Buffer must come from elsewhere
+     -- Byte_Copy (Addr,
+     --            Endpoint_Buffer_Address ((Ep, USB.EP_In)),
+     --            Natural(Len));
 
      --  Target := Source;
 
@@ -682,8 +682,8 @@ package body STM32.USB_Device is
      UPR := (Get_EPR_With_Invariant (Cur) with delta
              STAT_TX => Cur.STAT_TX xor 3);
 
-     EndLog ("< EP_Write_Packet", 3);
-   end EP_Write_Packet;
+     EndLog ("< EP_Send_Packet", 3);
+   end EP_Send_Packet;
 
    function Get_EPR_With_Invariant (Current: EPR_Register) return EPR_Register
    is
@@ -712,8 +712,7 @@ package body STM32.USB_Device is
    overriding
    procedure EP_Setup (This     : in out UDC;
                        EP       :        EP_Addr;
-                       Typ      :        EP_Type;
-                       Max_Size :        UInt16)
+                       Typ      :        EP_Type)
    is
 
      UPR: EPR_Register renames EPRS (Ep.Num);
@@ -737,14 +736,15 @@ package body STM32.USB_Device is
 
    begin
      StartLog ("> EP_Setup " & EP.Num'Image & ", " & (if EP.Dir = EP_In then "IN" else "OUT")
-               & " Typ: " & EPM2(Typ) & " Size: " & Max_Size'Image);
+               & " Typ: " & EPM2(Typ));
 
      if Ep.Num > Num_Endpoints then
        raise Program_Error with "Invalid endpoint number";
      end if;
 
      --  Sets ADDR for RX/TX and update BTABLE accordingly
-     This.Allocate_Endpoint_Buffer (Ep, UInt11 (Max_Size));
+     -- FIXME ALLOCATE BUFFER
+     --     This.Allocate_Endpoint_Buffer (Ep, UInt11 (Max_Size));
 
      This.EP_Status (EP.Num).Typ := Typ;
      This.EP_Status (EP.Num).Valid := True;
@@ -887,16 +887,15 @@ package body STM32.USB_Device is
    overriding
    procedure EP_Ready_For_Data (This  : in out UDC;
                                 EP    :        EP_Id;
-                                Addr  :        System.Address;
-                                Size  :        UInt32;
+                                Size  :        USB.Packet_Size;
                                 Ready :        Boolean := True)
    is
      UPR: EPR_Register renames EPRS (Ep);
      Cur : EPR_Register := UPR;
    begin
 
-     StartLog ("> EP_Ready_For_Data " & EP'Image & " buf at "
-               & Addr'Image & " len: " & Size'Image & " ready: " & Ready'Image, 2);
+     StartLog ("> EP_Ready_For_Data " & EP'Image
+               & " len: " & Size'Image & " ready: " & Ready'Image, 2);
 
      Log ("EPR      : " & EPR_Image(UPR));
 
@@ -908,8 +907,10 @@ package body STM32.USB_Device is
 
      --  Keep track of the user buffer where received data will be moved after
      --  reception.
-     This.EP_Status (Ep).Rx_User_Buffer_Address := Addr;
-     This.EP_Status (Ep).Rx_User_Buffer_Len := Size;
+
+     --  FIXME no more Addr in iface
+--     This.EP_Status (Ep).Rx_User_Buffer_Address := Addr;
+--     This.EP_Status (Ep).Rx_User_Buffer_Len := Size;
 
      if Ready then
        --  Set STAT_RX to VALID (0b11) to enable data reception.

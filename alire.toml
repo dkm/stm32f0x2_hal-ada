@@ -7,9 +7,9 @@ maintainers = ["Marc Poulhiès <dkm@kataplop.net>"]
 maintainers-logins = ["dkm"]
 
 [[depends-on]]  # Added by alr
-cortex_m = "~0.1"
+cortex_m = "^0.1"
 #cortex_m = { url="https://github.com/Fabien-Chouteau/cortex-m.git" }
-hal = "~0.1"
+hal = "^0.1"
 ##usb_embedded = { path='../usb_embedded' }
 usb_embedded = "~0.2"
 gnat_arm_elf = "^11.2"

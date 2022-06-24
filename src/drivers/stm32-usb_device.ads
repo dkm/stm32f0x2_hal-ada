@@ -21,8 +21,7 @@ package STM32.USB_Device is
    overriding
    function Request_Buffer (This          : in out UDC;
                             Ep            :        EP_Addr;
-                            Len           :        UInt11;
-                            Min_Alignment :        UInt8 := 1)
+                            Len           :        USB.Packet_Size)
                             return System.Address;
 
    overriding
@@ -41,22 +40,19 @@ package STM32.USB_Device is
    function Poll (This : in out UDC) return UDC_Event;
 
    overriding
-   procedure EP_Write_Packet (This : in out UDC;
+   procedure EP_Send_Packet (This : in out UDC;
                               Ep   : EP_Id;
-                              Addr : System.Address;
-                              Len  : UInt32);
+                              Len  : USB.Packet_Size);
 
    overriding
    procedure EP_Setup (This     : in out UDC;
                        EP       : EP_Addr;
-                       Typ      : EP_Type;
-                       Max_Size : UInt16);
+                       Typ      : EP_Type);
 
    overriding
    procedure EP_Ready_For_Data (This  : in out UDC;
                                 EP    : EP_Id;
-                                Addr  : System.Address;
-                                Size  : UInt32;
+                                Size  : USB.Packet_Size;
                                 Ready : Boolean := True);
 
    overriding
