@@ -75,8 +75,7 @@ private
 
    function Allocate_Buffer
       (This      : in out UDC;
-       Size      : Natural;
-       Alignment : Natural)
+       Size      : Natural)
        return Packet_Buffer_Offset;
 
    --  procedure Copy_Endpoint_Buffer
@@ -86,15 +85,28 @@ private
 
 
    type Endpoint_Status is record
-      -- Next_PID       : Boolean := False;
+
+     -- Following pointers points in the packet memory.
+     -- The memory is accessible by the CPU, but with particular constraints.
+     -- Instead of enforcing constraints everywhere, we copy back and forth
+     -- between the  packet memory and RAM.
+
       Tx_Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+      --  TX buffer in Packet memory
 
       Rx_Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
-      --  Buffer in Packet memory
+      --  RX buffer in Packet memory
+
+      --  Both folowing pointers points in regular memory: CPU can access it,
+      --  no particular constraint.
+
+      Tx_User_Buffer_Address  : System.Address := System.Null_Address;
+      --  Buffer where user writes data to be sent
+      Tx_User_Buffer_Len      : USB.Packet_Size := 0;
 
       Rx_User_Buffer_Address  : System.Address := System.Null_Address;
-      --  Buffer where user expect recvd data to be store
-      Rx_User_Buffer_Len      : UInt32 := 0;
+      --  Buffer where user expects received data to be stored
+      Rx_User_Buffer_Len      : USB.Packet_Size := 0;
 
       Typ : EP_Type := Bulk;
       Valid : Boolean := False;

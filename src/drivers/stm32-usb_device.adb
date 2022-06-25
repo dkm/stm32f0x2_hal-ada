@@ -225,7 +225,7 @@ package body STM32.USB_Device is
 
    procedure Allocate_Endpoint_Buffer (This : in out UDC;
                                        Ep : EP_Addr;
-                                       Len : UInt11)
+                                       Len : USB.Packet_Size)
    is
      use System.Storage_Elements;
      Offset    : Packet_Buffer_Offset;
@@ -254,7 +254,7 @@ package body STM32.USB_Device is
 
       else
         --  In EP memory, always align on half-words
-        Offset := Allocate_Buffer (This, Natural (Len), 16);
+        Offset := Allocate_Buffer (This, Natural (Len));
       end if;
 
       case EP.Dir is
@@ -295,6 +295,12 @@ package body STM32.USB_Device is
       EndLog ("< Allocate Endpoint Buffer");
    end Allocate_Endpoint_Buffer;
 
+   --  Allocates 2 memory buffers:
+   --  - a user buffer in RAM, used in the API, and the *only* thing that gets
+   --  out of this package.
+   --  - a packet buffer in packet memory. Used by the hardware, with
+   --  particular constraint. Never to be seen outside of the package.
+
    overriding
    function Request_Buffer (This          : in out UDC;
                             Ep            :        EP_Addr;
@@ -313,7 +319,7 @@ package body STM32.USB_Device is
 
       -- AddrRx : USB_ADDRN_RX_Register;
       -- CountRx : USB_COUNTN_RX_Register;
-
+      Mcu_Facing_Mem : System.Address;
    begin
       StartLog ("> Request buffer " & Ep.Num'Image & ", Dir " & EP.Dir'Image & " Len: " & Len'Image);
 
@@ -376,10 +382,28 @@ package body STM32.USB_Device is
 
       EndLog ("< Request buffer");
 
-      return Standard.USB.Utils.Allocate
-        (This.Alloc,
-         Alignment => 4,
-         Len       => Len);
+      --  Init hw & allocate in packet memory
+      This.Allocate_Endpoint_Buffer (Ep, Len);
+
+      -- This.EP_Status (Ep.Num).Rx_Buffer_Address := Offset;
+
+      Mcu_Facing_Mem := Standard.USB.Utils.Allocate
+                        (This.Alloc,
+                         Alignment => 4,
+                         Len       => Len);
+
+      case Ep.Dir is
+          when EP_In =>
+            This.EP_Status (Ep.Num).Tx_User_Buffer_Address :=
+              Mcu_Facing_Mem;
+            This.EP_Status (Ep.Num).Tx_User_Buffer_Len := Len;
+          when EP_Out =>
+            This.EP_Status (Ep.Num).Rx_User_Buffer_Address :=
+              Mcu_Facing_Mem;
+            This.EP_Status (Ep.Num).Rx_User_Buffer_Len := Len;
+      end case;
+
+      return Mcu_Facing_Mem;
       --  return Packet_Buffer_Base + Offset;
    end Request_Buffer;
 
@@ -489,6 +513,10 @@ package body STM32.USB_Device is
       for Ep in EPR_Registers'range when This.EP_Status (EP).Valid loop
         This.EP_Status (Ep).Rx_User_Buffer_Address := System.Null_Address;
         This.EP_Status (Ep).Rx_User_Buffer_Len := 0;
+
+        This.EP_Status (Ep).Tx_User_Buffer_Address := System.Null_Address;
+        This.EP_Status (Ep).Tx_User_Buffer_Len := 0;
+
       end loop;
     end Reset_EP_Status;
 
@@ -572,7 +600,9 @@ package body STM32.USB_Device is
                declare
                  Req : Setup_Data;
                begin
-                 Byte_Copy (Endpoint_Buffer_Address ((EP_Id, EP_Out)), Req'Address, Natural (Req'Size));
+                 Byte_Copy (Endpoint_Buffer_Address ((EP_Id, EP_Out)),
+                            Req'Address,
+                            Natural (Req'Size));
                  Log (" --> SETUP " & Setup_Data_Image (Req), 2, -1);
                  Endlog("## return Setup_Request");
 
@@ -651,6 +681,8 @@ package body STM32.USB_Device is
       -- Target : Storage_Array (1 .. Storage_Offset (Len))
       --    with Address => Endpoint_Buffer_Address ((Num => Ep, Dir => USB.EP_In));
 
+      User_Buffer : System.Address := This.EP_Status(Ep).Rx_User_Buffer_Address;
+
       UPR: EPR_Register renames EPRS (Ep);
       Cur : EPR_Register := UPR;
 
@@ -670,9 +702,9 @@ package body STM32.USB_Device is
 
 
      -- FIXME Buffer must come from elsewhere
-     -- Byte_Copy (Addr,
-     --            Endpoint_Buffer_Address ((Ep, USB.EP_In)),
-     --            Natural(Len));
+     Byte_Copy (User_Buffer,
+                Endpoint_Buffer_Address ((Ep, USB.EP_In)),
+                Natural(Len));
 
      --  Target := Source;
 
@@ -775,7 +807,6 @@ package body STM32.USB_Device is
          " nb: " & Btable(Ep.Num).COUNT_RX.NUM_BLOCK'Image &
          " addr_tx: " & Btable(Ep.Num).ADDR_TX.ADDRN_TX'Image &
          " count_tx: " & Btable(Ep.Num).COUNT_TX.COUNTN_TX'Image);
-
 
      EndLog ("< EP_Setup");
    end EP_Setup;
@@ -1003,14 +1034,13 @@ package body STM32.USB_Device is
 
    function Allocate_Buffer
       (This      : in out UDC;
-       Size      : Natural;
-       Alignment : Natural)
+       Size      : Natural)
       return Packet_Buffer_Offset
    is
       use System.Storage_Elements;
       Addr  : Packet_Buffer_Offset := This.Next_Buffer;
-      A     : constant Natural := Natural (Addr) mod Alignment;
-      Extra : constant Natural := Alignment - A;
+      A     : constant Natural := Natural (Addr) mod 16;
+      Extra : constant Natural := 16 - A;
    begin
       if A /= 0 then
          Addr := Addr + Storage_Offset (Extra);
