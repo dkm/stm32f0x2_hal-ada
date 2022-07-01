@@ -28,7 +28,7 @@ package STM32.USB_Device is
    function Valid_EP_Id (This : in out UDC;
                          EP   :        EP_Id)
                          return Boolean
-   is (Natural (EP) in 0 .. Num_Endpoints - 1);
+   is (Positive (EP) in 0 .. Num_Endpoints - 1);
 
    overriding
    procedure Start (This : in out UDC);
@@ -91,16 +91,18 @@ private
      -- Instead of enforcing constraints everywhere, we copy back and forth
      -- between the  packet memory and RAM.
 
-      Tx_Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+     --Tx_Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+     Tx_Buffer_Address : System.Address := System.Null_Address;
       --  TX buffer in Packet memory
 
-      Rx_Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+      --  Rx_Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+      Rx_Buffer_Address : System.Address := System.Null_Address;
       --  RX buffer in Packet memory
 
       --  Both folowing pointers points in regular memory: CPU can access it,
       --  no particular constraint.
 
-      Tx_User_Buffer_Address  : System.Address := System.Null_Address;
+     Tx_User_Buffer_Address  : System.Address := System.Null_Address;
       --  Buffer where user writes data to be sent
       Tx_User_Buffer_Len      : USB.Packet_Size := 0;
 
@@ -116,9 +118,13 @@ private
    type UDC
    is new USB_Device_Controller with record
 
-     Alloc : Standard.USB.Utils.Basic_RAM_Allocator (64);
-     --  4 16-bits words per AP (ADDR_TX + COUNT_TX + ADDR_RX + COUNT_RX)
-     --  128 bytes statically reserved for EP0 buffers. Maybe too much. 64 bytes is the minimum for USB FS control.
+     Alloc : Standard.USB.Utils.Basic_RAM_Allocator (64*4);
+
+     --  4 x 16-bits per AP (ADDR_TX + COUNT_TX + ADDR_RX + COUNT_RX) = 64-bits
+     --                                                                 (8 bytes)
+     --    x 8 endpoints
+     --    = 64 bytes for BTABLE
+     --    + 128 bytes statically reserved for EP0 buffers. Maybe too much. 64 bytes is the minimum for USB FS control.
      Next_Buffer : Packet_Buffer_Offset :=  System.Storage_Elements.Storage_Offset (Num_Endpoints * 8 + 128);
      EP_Status   : Endpoint_Status_Array := (others => <>);
      In_Reset    : Boolean := True;
