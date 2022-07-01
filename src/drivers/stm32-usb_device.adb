@@ -605,7 +605,7 @@ package body STM32.USB_Device is
         Log ("!! Reset RECEIVED");
         Log ("ISTR: " & Istr_Image (Cur_Istr));
 
-        This.Reset_EP_Status;
+        -- This.Reset_EP_Status;
 
         Istr := (Neutral_Istr with delta
                  RESET => False --  Clear
