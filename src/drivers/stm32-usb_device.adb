@@ -144,7 +144,7 @@ package body STM32.USB_Device is
          Volatile;
 
    EPRS : aliased EPR_Registers
-     with Import, Volatile, Address => USB_Periph.EP0R'Address;
+     with Import, Address => USB_Periph.EP0R'Address;
 
   function Endpoint_Buffer_Address
     (This : in out UDC;
