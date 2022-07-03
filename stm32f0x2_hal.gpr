@@ -21,14 +21,14 @@ project Stm32f0x2_Hal is
      external ("STM32F0X2_HAL_LIBRARY_TYPE", external ("LIBRARY_TYPE", "static"));
    for Library_Kind use Library_Type;
 
-   type Enabled_Kind is ("enabled", "disabled");
-   Compile_Checks : Enabled_Kind := External ("STM32F0X2_HAL_COMPILE_CHECKS", "disabled");
-   Runtime_Checks : Enabled_Kind := External ("STM32F0X2_HAL_RUNTIME_CHECKS", "disabled");
-   Style_Checks : Enabled_Kind := External ("STM32F0X2_HAL_STYLE_CHECKS", "disabled");
-   Contracts_Checks : Enabled_Kind := External ("STM32F0X2_HAL_CONTRACTS", "disabled");
+   -- type Enabled_Kind is ("enabled", "disabled");
+   -- Compile_Checks : Enabled_Kind := External ("STM32F0X2_HAL_COMPILE_CHECKS", "disabled");
+   -- Runtime_Checks : Enabled_Kind := External ("STM32F0X2_HAL_RUNTIME_CHECKS", "disabled");
+   -- Style_Checks : Enabled_Kind := External ("STM32F0X2_HAL_STYLE_CHECKS", "disabled");
+   -- Contracts_Checks : Enabled_Kind := External ("STM32F0X2_HAL_CONTRACTS", "disabled");
 
-   type Build_Kind is ("debug", "optimize");
-   Build_Mode : Build_Kind := External ("STM32F0X2_HAL_BUILD_MODE", "optimize");
+   -- type Build_Kind is ("debug", "optimize");
+   -- Build_Mode : Build_Kind := External ("STM32F0X2_HAL_BUILD_MODE", "optimize");
 
    Startup_Dirs := ();
    Linker_Script := "";
@@ -52,65 +52,69 @@ project Stm32f0x2_Hal is
         "src/svd",             
         "src/devices/STM32F0X2");
 
-   Compile_Checks_Switches := ();
-   case Compile_Checks is
-      when "enabled" =>
-         Compile_Checks_Switches :=
-           ("-gnatwa",  -- All warnings
-            "-gnatVa",  -- All validity checks
-            "-gnatwe"); -- Warnings as errors
-      when others => null;
-   end case;
+   -- Compile_Checks_Switches := ();
+   -- case Compile_Checks is
+   --    when "enabled" =>
+   --       Compile_Checks_Switches :=
+   --         ("-gnatwa",  -- All warnings
+   --          "-gnatVa",  -- All validity checks
+   --          "-gnatwe"); -- Warnings as errors
+   --    when others => null;
+   -- end case;
 
-   Runtime_Checks_Switches := ();
-   case Runtime_Checks is
-      when "enabled" => null;
-      when others =>
-         Runtime_Checks_Switches :=
-           ("-gnatp"); -- Suppress checks
-   end case;
+   -- Runtime_Checks_Switches := ();
+   -- case Runtime_Checks is
+   --    when "enabled" => null;
+   --    when others =>
+   --       Runtime_Checks_Switches :=
+   --         ("-gnatp"); -- Suppress checks
+   -- end case;
 
-   Style_Checks_Switches := ();
-   case Style_Checks is
-      when "enabled" =>
-         Style_Checks_Switches :=
-           ("-gnatyg",   -- GNAT Style checks
-            "-gnaty-d",  -- Disable no DOS line terminators
-            "-gnatyM80", -- Maximum line length
-            "-gnatyO");  -- Overriding subprograms explicitly marked as such
-      when others => null;
-   end case;
+   -- Style_Checks_Switches := ();
+   -- case Style_Checks is
+   --    when "enabled" =>
+   --       Style_Checks_Switches :=
+   --         ("-gnatyg",   -- GNAT Style checks
+   --          "-gnaty-d",  -- Disable no DOS line terminators
+   --          "-gnatyM80", -- Maximum line length
+   --          "-gnatyO");  -- Overriding subprograms explicitly marked as such
+   --    when others => null;
+   -- end case;
 
-   Contracts_Switches := ();
-   case Contracts_Checks is
-      when "enabled" =>
-         Contracts_Switches :=
-           ("-gnata"); --  Enable assertions and contracts
-      when others => null;
-   end case;
+   -- Contracts_Switches := ();
+   -- case Contracts_Checks is
+   --    when "enabled" =>
+   --       Contracts_Switches :=
+   --         ("-gnata"); --  Enable assertions and contracts
+   --    when others => null;
+   -- end case;
 
-   Build_Switches := ();
-   case Build_Mode is
-      when "optimize" =>
-         Build_Switches := ("-O3",     -- Optimization
-                            "-gnatn"); -- Enable inlining
-      when "debug" =>
-         Build_Switches := ("-g3",   -- Debug info
-                            "-O0"); -- No optimization
-   end case;
+   -- Build_Switches := ();
+   -- case Build_Mode is
+   --    when "optimize" =>
+   --       Build_Switches := ("-O3",     -- Optimization
+   --                          "-gnatn"); -- Enable inlining
+   --    when "debug" =>
+   --       Build_Switches := ("-g3",   -- Debug info
+   --                          "-O0"); -- No optimization
+   -- end case;
+
+   -- package Compiler is
+   --    for Default_Switches ("Ada") use
+   --      Compile_Checks_Switches &
+   --      Build_Switches &
+   --      Runtime_Checks_Switches &
+   --      Style_Checks_Switches &
+   --      Contracts_Switches &
+   --      ("-gnatw.X", -- Disable warnings for No_Exception_Propagation
+   --       "-gnatQ",   -- Don't quit. Generate ALI and tree files even if illegalities
+   --       "-ffunction-sections",
+   --       "-fdata-sections",
+   --       "-gnat2020");
+   -- end Compiler;
 
    package Compiler is
-      for Default_Switches ("Ada") use
-        Compile_Checks_Switches &
-        Build_Switches &
-        Runtime_Checks_Switches &
-        Style_Checks_Switches &
-        Contracts_Switches &
-        ("-gnatw.X", -- Disable warnings for No_Exception_Propagation
-         "-gnatQ",   -- Don't quit. Generate ALI and tree files even if illegalities
-         "-ffunction-sections",
-         "-fdata-sections",
-         "-gnat2020");
+        for Default_Switches ("Ada") use Stm32f0x2_Hal_Config.Ada_Compiler_Switches & ("-gnatX");
    end Compiler;
 
    package Binder is

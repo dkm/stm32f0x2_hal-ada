@@ -17,3 +17,8 @@ gnat_arm_elf = "^11.2"
 [configuration.variables]
 Use_Startup = {type = "Boolean", default = true}
 
+[build-switches]
+development.optimization = ["-O0", "-g3", "-gnata"]
+
+release.debug_info = "yes"
+development.style_checks = "no"

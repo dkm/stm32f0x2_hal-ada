@@ -91,18 +91,22 @@ private
      -- Instead of enforcing constraints everywhere, we copy back and forth
      -- between the  packet memory and RAM.
 
-     --Tx_Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
-     Tx_Buffer_Address : System.Address := System.Null_Address;
+     Tx_Buffer_Offset : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+
+     -- Tx_Buffer_Address : System.Address := System.Null_Address;
       --  TX buffer in Packet memory
 
-      --  Rx_Buffer_Address : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
-      Rx_Buffer_Address : System.Address := System.Null_Address;
+      Rx_Buffer_Offset : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+      Rx_Use_32b : Boolean := False;
+      Rx_Num_Blocks : Natural := 0;
+
+      -- Rx_Buffer_Address : System.Address := System.Null_Address;
       --  RX buffer in Packet memory
 
       --  Both folowing pointers points in regular memory: CPU can access it,
       --  no particular constraint.
 
-     Tx_User_Buffer_Address  : System.Address := System.Null_Address;
+     Tx_User_Buffer_Address : System.Address := System.Null_Address;
       --  Buffer where user writes data to be sent
       Tx_User_Buffer_Len      : USB.Packet_Size := 0;
 

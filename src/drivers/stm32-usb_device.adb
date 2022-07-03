@@ -1,4 +1,3 @@
-
 with STM32.Device; use STM32.Device;
 with STM32_SVD.USB; use STM32_SVD.USB;
 with STM32_SVD.RCC; use STM32_SVD.RCC;
@@ -312,16 +311,19 @@ package body STM32.USB_Device is
           AddrTx := (ADDRN_TX => UInt16 (Offset));
 
           Log ("ADDR_TX at " & Btable (Ep.Num).ADDR_TX'Address'Image);
+
           Btable (Ep.Num).ADDR_TX := AddrTx;
           Btable (Ep.Num).COUNT_TX.COUNTN_TX := 0;
-          This.EP_Status (Ep.Num).Tx_Buffer_Address := Packet_Buffer_Base + Packet_Buffer_Offset (Offset);
+
+          This.EP_Status (Ep.Num).Tx_Buffer_Offset := Offset;
 
         when EP_Out =>
           AddrRx.ADDRN_RX := UInt16 (Offset);
 
           Log ("ADDR_RX at " & Btable (Ep.Num).ADDR_RX'Address'Image);
 
-          Btable (Ep.Num).ADDR_RX := AddrRx;
+          -- FIXME
+          -- Btable (Ep.Num).ADDR_RX := AddrRx;
 
           if Len <= 62 then
             Num_Blocks := Integer(Len) / 2;
@@ -330,15 +332,17 @@ package body STM32.USB_Device is
             Use_32b_block := True;
           end if;
 
-          CountRx := (BL_SIZE =>Bit (if Use_32b_block then 1 else 0),
-                      NUM_BLOCK => UInt5 (Num_Blocks),
-                      others => 0);
+          -- CountRx := (BL_SIZE =>Bit (if Use_32b_block then 1 else 0),
+          --             NUM_BLOCK => UInt5 (Num_Blocks),
+          --             others => 0);
+          -- FIXME
 
-          Log ("COUNT_RX at " & Btable (Ep.Num).COUNT_RX'Address'Image);
-          Btable (Ep.Num).COUNT_RX := CountRx;
+          -- Log ("COUNT_RX at " & Btable (Ep.Num).COUNT_RX'Address'Image);
+          -- Btable (Ep.Num).COUNT_RX := CountRx;
 
-          This.EP_Status (Ep.Num).Rx_Buffer_Address := Packet_Buffer_Base + Packet_Buffer_Offset (Offset);
-
+          This.EP_Status (Ep.Num).Rx_Buffer_Offset := Offset;
+          This.EP_Status (Ep.Num).Rx_Use_32b := Use_32b_block;
+          This.EP_Status (Ep.Num).Rx_Num_Blocks := Num_Blocks;
       end case;
 
       EndLog ("< Allocate Endpoint Buffer");
@@ -428,8 +432,6 @@ package body STM32.USB_Device is
       --     This.EP_Status (Ep.Num).Rx_Buffer_Address := Offset;
 
       -- end case;
-
-
 
       --  Init hw & allocate in packet memory
       This.Allocate_Endpoint_Buffer (Ep, Len);
@@ -715,9 +717,9 @@ package body STM32.USB_Device is
 
      case EP.Dir is
        when EP_Out =>
-         return This.EP_Status (Ep.Num).Rx_Buffer_Address;
+         return This.EP_Status (Ep.Num).Rx_Buffer_Offset + Packet_Buffer_Base;
        when EP_In =>
-         return This.EP_Status (Ep.Num).Tx_Buffer_Address;
+         return This.EP_Status (Ep.Num).Tx_Buffer_Offset + Packet_Buffer_Base;
       end case;
 
      -- case EP.Dir is
@@ -833,6 +835,21 @@ package body STM32.USB_Device is
      --  Sets ADDR for RX/TX and update BTABLE accordingly
      -- FIXME ALLOCATE BUFFER
      --     This.Allocate_Endpoint_Buffer (Ep, UInt11 (Max_Size));
+
+     --  Write BTABLE entry
+     case Ep.Dir is
+       when EP_In =>
+         Btable (Ep.Num).ADDR_TX := ((ADDRN_TX => UInt16 (This.EP_Status (Ep.Num).Tx_Buffer_Offset)));
+         Btable (Ep.Num).COUNT_TX.COUNTN_TX := 0;
+
+       when EP_Out =>
+         Btable (Ep.Num).ADDR_RX := (ADDRN_RX => UInt16 (This.EP_Status (Ep.Num).Rx_Buffer_Offset));
+
+         Btable (Ep.Num).COUNT_RX := (BL_SIZE => Bit (if This.EP_Status (Ep.Num).Rx_Use_32b then 1 else 0),
+                                      NUM_BLOCK => UInt5 (This.EP_Status (Ep.Num).Rx_Num_Blocks),
+                                      others => 0);
+
+     end case;
 
      This.EP_Status (EP.Num).Typ := Typ;
      This.EP_Status (EP.Num).Valid := True;
@@ -1070,8 +1087,9 @@ package body STM32.USB_Device is
    is
      use System.Storage_Elements;
      use System;
-     Use_32b_Block  : Bit renames Btable (Num).COUNT_RX.BL_SIZE;
-     Block_Count    : UInt5 renames Btable (Num).COUNT_RX.NUM_BLOCK;
+
+     -- Use_32b_Block  : Bit renames Btable (Num).COUNT_RX.BL_SIZE;
+     -- Block_Count    : UInt5 renames Btable (Num).COUNT_RX.NUM_BLOCK;
      Length : constant Storage_Offset := Storage_Offset (Btable(Num).COUNT_RX.COUNTN_RX);
      --  Length         : constant Storage_Offset := Storage_Offset ((if Use_32b_Block = 1 then Storage_Offset (Block_Count) * 32 else Storage_Offset (Block_Count) * 2));
 
