@@ -78,23 +78,15 @@ private
        Size      : Natural)
        return Packet_Buffer_Offset;
 
-   --  procedure Copy_Endpoint_Buffer
-   --    (This : in out UDC;
-   --     Num  : USB.EP_Id;
-   --     Dir  : USB.EP_Dir);
-
-
    type Endpoint_Status is record
 
-     -- Following pointers points in the packet memory.
-     -- The memory is accessible by the CPU, but with particular constraints.
-     -- Instead of enforcing constraints everywhere, we copy back and forth
-     -- between the  packet memory and RAM.
+   -- Following pointers points in the packet memory.
 
-     Tx_Buffer_Offset : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
+   -- The memory is accessible by the CPU, but with particular constraints.
+   -- Instead of enforcing constraints everywhere, we copy back and forth
+   -- between the packet memory and RAM.
 
-     -- Tx_Buffer_Address : System.Address := System.Null_Address;
-      --  TX buffer in Packet memory
+      Tx_Buffer_Offset : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
 
       Rx_Buffer_Offset : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
       Rx_Use_32b : Boolean := False;
@@ -106,7 +98,7 @@ private
       --  Both folowing pointers points in regular memory: CPU can access it,
       --  no particular constraint.
 
-     Tx_User_Buffer_Address : System.Address := System.Null_Address;
+      Tx_User_Buffer_Address : System.Address := System.Null_Address;
       --  Buffer where user writes data to be sent
       Tx_User_Buffer_Len      : USB.Packet_Size := 0;
 

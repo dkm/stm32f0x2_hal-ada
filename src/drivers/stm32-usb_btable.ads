@@ -82,20 +82,7 @@ package STM32.USB_Btable is
   type Btable_Type is array (UInt4) of EP_Group
     with Volatile;
 
-  -- type Btable_Type is record
-  --   ADDR0_TX : USB_ADDRN_TX_Register;
-  --   COUNT0_TX : USB_COUNTN_TX_Register;
-  --   ADDR0_RX : USB_ADDRN_RX_Register;
-  --   COUNT0_RX : USB_COUNTN_RX_Register;
-  -- end record
-  --   with Volatile;
-
-  -- for Btable_Type use record
-  --   ADDR0_TX at 16#0# range 0 .. 15;
-  --   COUNT0_TX at 16#2# range 0 .. 15;
-  --   ADDR0_RX at 16#4# range 0 .. 15;
-  --   COUNT0_RX at 16#6# range 0 .. 15;
-  -- end record;
+  --  This is the first valid address for the Packet Memory
 
   Btable_Base : constant System.Address := System'To_Address (16#4000_6000#);
 
