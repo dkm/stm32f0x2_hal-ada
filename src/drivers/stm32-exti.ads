@@ -42,6 +42,9 @@
 --  This file provides register definitions for the STM32 (ARM Cortex M4/7F)
 --  microcontrollers from ST Microelectronics.
 
+--  Copyright 2022 (C) Marc Poulhiès
+--  This file has been adapted for the STM32F0 (ARM Cortex M4)
+
 package STM32.EXTI is
 
    type External_Line_Number is

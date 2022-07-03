@@ -42,6 +42,9 @@
 --  This file provides definitions for the STM32F4 (ARM Cortex M4F
 --  from ST Microelectronics) Serial Peripheral Interface (SPI) facility.
 
+--  Copyright 2022 (C) Marc Poulhiès
+--  This file has been adapted for the STM32F0 (ARM Cortex M4)
+
 private with STM32_SVD.SPI;
 with HAL.SPI;
 with System;

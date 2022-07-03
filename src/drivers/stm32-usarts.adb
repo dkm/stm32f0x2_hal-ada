@@ -39,6 +39,9 @@
 --   COPYRIGHT(c) 2014 STMicroelectronics                                   --
 ------------------------------------------------------------------------------
 
+--  Copyright 2022 (C) Marc Poulhiès
+--  This file has been adapted for the STM32F0 (ARM Cortex M4)
+
 with System;          use System;
 with STM32_SVD.USART; use STM32_SVD, STM32_SVD.USART;
 

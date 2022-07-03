@@ -39,6 +39,9 @@
 --   COPYRIGHT(c) 2014 STMicroelectronics                                   --
 ------------------------------------------------------------------------------
 
+--  Copyright 2022 (C) Marc Poulhiès
+--  This file has been adapted for the STM32F0 (ARM Cortex M4)
+
 with Ada.Unchecked_Conversion;
 
 with STM32_SVD.SPI; use STM32_SVD.SPI;

@@ -45,6 +45,9 @@
 --  Note that there are board implementation assumptions represented by the
 --  private function APB_Clock.
 
+--  Copyright 2022 (C) Marc Poulhiès
+--  This file has been adapted for the STM32F0 (ARM Cortex M4)
+
 with System;
 with HAL.UART; use HAL.UART;
 private with STM32_SVD.USART;

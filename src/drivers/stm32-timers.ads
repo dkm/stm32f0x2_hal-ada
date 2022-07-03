@@ -42,6 +42,9 @@
 --  This file provides definitions for the timers on the STM32F0 (ARM Cortex
 --  M0) microcontrollers from ST Microelectronics.
 
+--  Copyright 2022 (C) Marc Poulhiès
+--  This file has been adapted for the STM32F0 (ARM Cortex M4)
+
 pragma Restrictions (No_Elaboration_Code);
 
 with System;    use System;

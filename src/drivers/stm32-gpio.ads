@@ -28,6 +28,9 @@
 --   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.   --
 ------------------------------------------------------------------------------
 
+--  Copyright 2022 (C) Marc Poulhiès
+--  This file has been adapted for the STM32F0 (ARM Cortex M4)
+
 with HAL;     use HAL;
 
 private with STM32_SVD.GPIO;

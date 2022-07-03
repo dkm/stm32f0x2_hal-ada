@@ -42,6 +42,9 @@
 --  This file provides register definitions for the STM32F4 (ARM Cortex M4F)
 --  microcontrollers from ST Microelectronics.
 
+--  Copyright 2022 (C) Marc Poulhiès
+--  This file has been adapted for the STM32F0 (ARM Cortex M4)
+
 with STM32.GPIO;  use STM32.GPIO;
 
 package STM32.SYSCFG is
