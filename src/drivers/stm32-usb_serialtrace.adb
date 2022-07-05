@@ -41,12 +41,12 @@ package body STM32.USB_Serialtrace is
       Enable_Clock (USART_1);
       Enable_Clock (RX_Pin & TX_Pin);
       Configure_IO
-          (RX_Pin & TX_Pin,
-             (Mode           => Mode_AF,
-                AF             => GPIO_B_AF_USART1_0,
-                Resistors      => Pull_Up,
-                AF_Speed       => Speed_50MHz,
-                AF_Output_Type => Push_Pull));
+        (RX_Pin & TX_Pin,
+         (Mode           => Mode_AF,
+          AF             => GPIO_B_AF_USART1_0,
+          Resistors      => Pull_Up,
+          AF_Speed       => Speed_50MHz,
+          AF_Output_Type => Push_Pull));
 
       Disable (USART_1);
 
@@ -61,12 +61,12 @@ package body STM32.USB_Serialtrace is
       Enable (USART_1);
       Log ("START");
       Log ("--");
-    end Init_Serialtrace;
+   end Init_Serialtrace;
 
    procedure Await_Send_Ready (This : USART) is
    begin
       loop
-        exit when Tx_Ready (This);
+         exit when Tx_Ready (This);
       end loop;
    end Await_Send_Ready;
 
@@ -103,25 +103,25 @@ package body STM32.USB_Serialtrace is
       Indent := Indent + Deindent;
    end Log;
 
-    procedure StartLog (S: String; L: Integer := 1) is
-    begin
+   procedure StartLog (S: String; L: Integer := 1) is
+   begin
       if not Log_Enabled or else L < Log_Level then
          return;
       end if;
 
       Log (S, L);
       Indent := Indent + 1;
-    end StartLog;
+   end StartLog;
 
-    procedure EndLog (S: String; L: Integer :=1) is
-    begin
+   procedure EndLog (S: String; L: Integer :=1) is
+   begin
       if not Log_Enabled or else L < Log_Level then
          return;
       end if;
 
       Indent := Indent - 1;
       Log (S, L);
-    end EndLog;
+   end EndLog;
 
 
 end STM32.USB_Serialtrace;

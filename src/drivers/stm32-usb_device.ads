@@ -34,7 +34,7 @@ package STM32.USB_Device is
    Num_Endpoints : constant := 8;
 
    type UDC
-   is new USB_Device_Controller with private;
+     is new USB_Device_Controller with private;
 
    overriding
    procedure Initialize (This : in out UDC);
@@ -43,12 +43,12 @@ package STM32.USB_Device is
    function Request_Buffer (This          : in out UDC;
                             Ep            :        EP_Addr;
                             Len           :        USB.Packet_Size)
-                            return System.Address;
+                           return System.Address;
 
    overriding
    function Valid_EP_Id (This : in out UDC;
                          EP   :        EP_Id)
-                         return Boolean
+                        return Boolean
    is (Positive (EP) in 0 .. Num_Endpoints - 1);
 
    overriding
@@ -62,8 +62,8 @@ package STM32.USB_Device is
 
    overriding
    procedure EP_Send_Packet (This : in out UDC;
-                              Ep   : EP_Id;
-                              Len  : USB.Packet_Size);
+                             Ep   : EP_Id;
+                             Len  : USB.Packet_Size);
 
    overriding
    procedure EP_Setup (This     : in out UDC;
@@ -95,17 +95,17 @@ private
    subtype Packet_Buffer_Offset is System.Storage_Elements.Storage_Offset range 16#000# .. 16#3FF#;
 
    function Allocate_Buffer
-      (This      : in out UDC;
-       Size      : Natural)
-       return Packet_Buffer_Offset;
+     (This      : in out UDC;
+      Size      : Natural)
+     return Packet_Buffer_Offset;
 
    type Endpoint_Status is record
 
-   -- Following pointers points in the packet memory.
+      -- Following pointers points in the packet memory.
 
-   -- The memory is accessible by the CPU, but with particular constraints.
-   -- Instead of enforcing constraints everywhere, we copy back and forth
-   -- between the packet memory and RAM.
+      -- The memory is accessible by the CPU, but with particular constraints.
+      -- Instead of enforcing constraints everywhere, we copy back and forth
+      -- between the packet memory and RAM.
 
       Tx_Buffer_Offset : Packet_Buffer_Offset := Packet_Buffer_Offset'Last;
 
@@ -133,17 +133,17 @@ private
 
    type Endpoint_Status_Array is array (USB.EP_Id) of Endpoint_Status;
    type UDC
-   is new USB_Device_Controller with record
+      is new USB_Device_Controller with record
 
-     Alloc : Standard.USB.Utils.Basic_RAM_Allocator (64*4);
+         Alloc : Standard.USB.Utils.Basic_RAM_Allocator (64*4);
 
-     --  4 x 16-bits per AP (ADDR_TX + COUNT_TX + ADDR_RX + COUNT_RX) = 64-bits
-     --                                                                 (8 bytes)
-     --    x 8 endpoints
-     --    = 64 bytes for BTABLE
-     --    + 128 bytes statically reserved for EP0 buffers. Maybe too much. 64 bytes is the minimum for USB FS control.
-     Next_Buffer : Packet_Buffer_Offset :=  System.Storage_Elements.Storage_Offset (Num_Endpoints * 8 + 128);
-     EP_Status   : Endpoint_Status_Array := (others => <>);
-     In_Reset    : Boolean := True;
-   end record;
+         --  4 x 16-bits per AP (ADDR_TX + COUNT_TX + ADDR_RX + COUNT_RX) = 64-bits
+         --                                                                 (8 bytes)
+         --    x 8 endpoints
+         --    = 64 bytes for BTABLE
+         --    + 128 bytes statically reserved for EP0 buffers. Maybe too much. 64 bytes is the minimum for USB FS control.
+         Next_Buffer : Packet_Buffer_Offset :=  System.Storage_Elements.Storage_Offset (Num_Endpoints * 8 + 128);
+         EP_Status   : Endpoint_Status_Array := (others => <>);
+         In_Reset    : Boolean := True;
+      end record;
 end STM32.USB_Device;
