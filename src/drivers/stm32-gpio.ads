@@ -38,7 +38,7 @@ private with STM32_SVD.GPIO;
 with HAL.GPIO;
 
 package STM32.GPIO is
---   type GPIO_Alternate_Function is private;
+   --   type GPIO_Alternate_Function is private;
 
    type GPIO_Port is limited private;
 
@@ -73,11 +73,11 @@ package STM32.GPIO is
    --  to construct GPIO_Pins values conveniently
 
    All_Pins : constant GPIO_Pins :=
-                (Pin_0, Pin_1, Pin_2, Pin_3, Pin_4, Pin_5, Pin_6, Pin_7,
-                 Pin_8, Pin_9, Pin_10, Pin_11, Pin_12, Pin_13, Pin_14, Pin_15);
+     (Pin_0, Pin_1, Pin_2, Pin_3, Pin_4, Pin_5, Pin_6, Pin_7,
+      Pin_8, Pin_9, Pin_10, Pin_11, Pin_12, Pin_13, Pin_14, Pin_15);
 
    type Pin_IO_Modes is (Mode_In, Mode_Out, Mode_AF, Mode_Analog)
-     with Size => 2;
+   with Size => 2;
 
    for Pin_IO_Modes use
      (Mode_In     => 0,
@@ -86,13 +86,13 @@ package STM32.GPIO is
       Mode_Analog => 3);
 
    type Pin_Output_Types is (Push_Pull, Open_Drain)
-     with Size => 1;
+   with Size => 1;
 
 
    for Pin_Output_Types use (Push_Pull => 0, Open_Drain => 1);
 
    type Pin_Output_Speeds is (Speed_2MHz,  Speed_25MHz, Speed_50MHz)
-     with Size => 2;
+   with Size => 2;
 
    for Pin_Output_Speeds use
      (Speed_2MHz   => 0,  -- low
@@ -104,7 +104,7 @@ package STM32.GPIO is
    Speed_High      : Pin_Output_Speeds renames Speed_50MHz;
 
    type Internal_Pin_Resistors is (Floating, Pull_Up, Pull_Down)
-     with Size => 2;
+   with Size => 2;
 
    for Internal_Pin_Resistors use (Floating  => 0,
                                    Pull_Up   => 1,
@@ -136,7 +136,7 @@ package STM32.GPIO is
    overriding
    function Support (This : GPIO_Point;
                      Capa : HAL.GPIO.Capability)
-                     return Boolean
+                    return Boolean
    is (case Capa is
           when others => True);
    --  STM32 supports all GPIO capabilities
@@ -150,7 +150,7 @@ package STM32.GPIO is
 
    overriding
    function Pull_Resistor (This : GPIO_Point)
-                           return HAL.GPIO.GPIO_Pull_Resistor;
+                          return HAL.GPIO.GPIO_Pull_Resistor;
 
    overriding
    procedure Set_Pull_Resistor (This : in out GPIO_Point;
@@ -182,8 +182,8 @@ package STM32.GPIO is
    --  This.Pin (one becomes zero and vice versa). Other pins are unaffected.
 
    procedure Drive (This : in out GPIO_Point; Condition : Boolean) with
-      Post => (This.Set = Condition),
-      Inline;
+     Post => (This.Set = Condition),
+     Inline;
    --  Drives This high or low (set or clear) based on the value of Condition
 
    procedure Lock (This : GPIO_Point) with
@@ -193,7 +193,7 @@ package STM32.GPIO is
    --  the MCU is reset.
 
    function Locked (This : GPIO_Point) return Boolean
-     with Inline;
+   with Inline;
 
    procedure Configure_IO
      (This   : GPIO_Point;
@@ -274,7 +274,7 @@ package STM32.GPIO is
    --  specified by AF
 
 private
---   type GPIO_Alternate_Function is new UInt4;
+   --   type GPIO_Alternate_Function is new UInt4;
 
    type GPIO_Port is new STM32_SVD.GPIO.GPIO_Peripheral;
 
