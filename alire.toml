@@ -13,7 +13,7 @@ website = "https://github.com/dkm/stm32f0x2_hal-ada"
 cortex_m = "~0.5"
 hal = "~0.3"
 usb_embedded = "~0.3"
-gnat_arm_elf = "^12"
+gnat_arm_elf = ">=12"
 
 [configuration.variables]
 Use_Startup = {type = "Boolean", default = true}
