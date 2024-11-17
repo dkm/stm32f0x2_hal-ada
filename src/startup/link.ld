@@ -10,10 +10,11 @@ _DEFAULT_STACK_SIZE = 0x1000;
 
 ENTRY(Reset_Handler);
 
+/* These values are only valid for some parts (e.g. stm32f072cbt6) */
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x8000000, LENGTH = 0x20000
-  RAM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x4000
+  FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 128K
+  RAM (rwx) : ORIGIN =  0x20000000, LENGTH = 16K
 }
 
 /*

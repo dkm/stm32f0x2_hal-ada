@@ -66,23 +66,23 @@ package body STM32.RCC is
    end Enable_Clock;
 
    procedure Freeze (This : in out Rcc_Cfgr) is
-      Src_Clock_Freq : Positive := Get_Freq (This.Clock_Source);
+      Src_Clock_Freq : constant Positive := Get_Freq (This.Clock_Source);
       Pllmul_Bits    : Integer  := 0;
 
-      Real_Sysclk : Natural := 0;
+      --  Real_Sysclk : Natural := 0;
 
       --  do not divide AHB clock
-      Hpre_Bits : constant CFGR_HPRE_Field := 0;
+      --  Hpre_Bits : constant CFGR_HPRE_Field := 0;
 
       --  do not divide APB clock
-      Ppre_Bits : constant CFGR_PPRE_Field := 0;
+      --  Ppre_Bits : constant CFGR_PPRE_Field := 0;
 
       Cfgr_To_Write : STM32_SVD.RCC.CFGR_Register;
    begin
 
       if This.Sysclk = Src_Clock_Freq then
          Pllmul_Bits := 0;
-         Real_Sysclk := Src_Clock_Freq;
+         --  Real_Sysclk := Src_Clock_Freq;
       else
          --  User requests a freq that needs some config.
          raise Program_Error;
