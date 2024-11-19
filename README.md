@@ -1,4 +1,7 @@
 # Introduction
+[![builds.sr.ht status](https://builds.sr.ht/~dkm/stm32f0x2_hal-ada/commits/main/.build.yml.svg)](https://builds.sr.ht/~dkm/stm32f0x2_hal-ada/commits/main/.build.yml?)
+
+The main repository is on [SourceHut](https://builds.sr.ht/~dkm/stm32f0x2_hal-ada/).
 
 This repository contains drivers for the STM32F0*2 familly microcontrolers.
 It is based on the [Ada_Driver_Library](https://github.com/AdaCore/Ada_Drivers_Library).
