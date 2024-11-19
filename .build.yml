@@ -1,0 +1,20 @@
+## CI for sr.ht
+
+image: debian/unstable
+arch: amd64
+packages:
+  - build-essential
+  - unzip
+tasks:
+  - setup-ada: |
+      curl -L -O https://github.com/alire-project/alire/releases/download/v2.0.2/alr-2.0.2-bin-x86_64-linux.zip
+      unzip alr-2.0.2-bin-x86_64-linux.zip bin/alr
+      export PATH=$PWD/bin:$PATH
+      cd stm32f0x2_hal-ada
+      alr  --no-tty --no-color toolchain --select "gnat_arm_elf"
+      alr  --no-tty --no-color toolchain --select "gprbuild"
+
+  - build-ada: |
+      export PATH=$PWD/bin:$PATH
+      cd stm32f0x2_hal-ada
+      alr --no-tty --no-color build --release
