@@ -365,6 +365,7 @@ package body STM32.USB_Device is
               CTR_RX => False);
    end Clear_Ctr_Rx;
 
+   pragma Warnings (Off, "is not referenced");
    function Setup_Data_Image (R: Setup_Data) return String is
    begin
       return "SetupData Rtype: " &
