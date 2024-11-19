@@ -2,7 +2,7 @@
 --                                                                           --
 --                              STM32F0 USB                                  --
 --                                                                           --
---                  Copyright (C) 2022      Marc Poulhiès                    --
+--                  Copyright (C) 2022      Marc PoulhiÃ¨s                    --
 --                                                                           --
 --    STM32F0 USB is free software: you can redistribute it and/or           --
 --    modify it under the terms of the GNU General Public License as         --
@@ -27,7 +27,7 @@ with STM32.GPIO;    use STM32.GPIO;
 with STM32_SVD.USB; use STM32_SVD.USB;
 
 package body STM32.USB_Serialtrace is
-   Indent : Natural             := 0;
+   Indent : Natural := 0;
    TX_Pin : constant GPIO_Point := PB6;
    RX_Pin : constant GPIO_Point := PB7;
 
@@ -44,8 +44,11 @@ package body STM32.USB_Serialtrace is
       Enable_Clock (RX_Pin & TX_Pin);
       Configure_IO
         (RX_Pin & TX_Pin,
-         (Mode     => Mode_AF, AF => GPIO_B_AF_USART1_0, Resistors => Pull_Up,
-          AF_Speed => Speed_50MHz, AF_Output_Type => Push_Pull));
+         (Mode           => Mode_AF,
+          AF             => GPIO_B_AF_USART1_0,
+          Resistors      => Pull_Up,
+          AF_Speed       => Speed_50MHz,
+          AF_Output_Type => Push_Pull));
 
       Disable (USART_1);
 

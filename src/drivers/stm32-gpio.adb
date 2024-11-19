@@ -28,7 +28,7 @@
 --   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.   --
 ------------------------------------------------------------------------------
 --
---  Copyright 2022 (C) Marc Poulhiès
+--  Copyright 2022 (C) Marc PoulhiÃ¨s
 --  This file has been adapted for the STM32F0 (ARM Cortex M4)
 --  Beware that most of this has been reused from Ada Drivers Library
 --  (https://github.com/AdaCore/Ada_Drivers_Library) and has been
@@ -73,13 +73,16 @@ package body STM32.GPIO is
    -- Mode --
    ----------
 
-   overriding function Mode (This : GPIO_Point) return HAL.GPIO.GPIO_Mode is
+   overriding
+   function Mode (This : GPIO_Point) return HAL.GPIO.GPIO_Mode is
    begin
       case Pin_IO_Mode (This) is
          when Mode_Out =>
             return HAL.GPIO.Output;
+
          when Mode_In =>
             return HAL.GPIO.Input;
+
          when others =>
             return HAL.GPIO.Unknown_Mode;
       end case;
@@ -99,7 +102,8 @@ package body STM32.GPIO is
    -- Set_Mode --
    --------------
 
-   overriding procedure Set_Mode
+   overriding
+   procedure Set_Mode
      (This : in out GPIO_Point; Mode : HAL.GPIO.GPIO_Config_Mode)
    is
       Index : constant GPIO_Pin_Index := GPIO_Pin'Pos (This.Pin);
@@ -107,6 +111,7 @@ package body STM32.GPIO is
       case Mode is
          when HAL.GPIO.Output =>
             This.Periph.MODER.Arr (Index) := Pin_IO_Modes'Enum_Rep (Mode_Out);
+
          when HAL.GPIO.Input =>
             This.Periph.MODER.Arr (Index) := Pin_IO_Modes'Enum_Rep (Mode_In);
       end case;
@@ -116,7 +121,8 @@ package body STM32.GPIO is
    -- Pull_Resistor --
    -------------------
 
-   overriding function Pull_Resistor
+   overriding
+   function Pull_Resistor
      (This : GPIO_Point) return HAL.GPIO.GPIO_Pull_Resistor
    is
       Index : constant GPIO_Pin_Index := GPIO_Pin'Pos (This.Pin);
@@ -134,7 +140,8 @@ package body STM32.GPIO is
    -- Set_Pull_Resistor --
    -----------------------
 
-   overriding procedure Set_Pull_Resistor
+   overriding
+   procedure Set_Pull_Resistor
      (This : in out GPIO_Point; Pull : HAL.GPIO.GPIO_Pull_Resistor)
    is
       Index : constant GPIO_Pin_Index := GPIO_Pin'Pos (This.Pin);
@@ -142,8 +149,10 @@ package body STM32.GPIO is
       case Pull is
          when HAL.GPIO.Floating =>
             This.Periph.PUPDR.Arr (Index) := 0;
+
          when HAL.GPIO.Pull_Up =>
             This.Periph.PUPDR.Arr (Index) := 1;
+
          when HAL.GPIO.Pull_Down =>
             This.Periph.PUPDR.Arr (Index) := 2;
       end case;
@@ -153,7 +162,8 @@ package body STM32.GPIO is
    -- Set --
    ---------
 
-   overriding function Set (This : GPIO_Point) return Boolean is
+   overriding
+   function Set (This : GPIO_Point) return Boolean is
       Pin_Mask : constant UInt16 := GPIO_Pin'Enum_Rep (This.Pin);
    begin
       return (This.Periph.IDR.IDR.Val and Pin_Mask) = Pin_Mask;
@@ -178,7 +188,8 @@ package body STM32.GPIO is
    -- Set --
    ---------
 
-   overriding procedure Set (This : in out GPIO_Point) is
+   overriding
+   procedure Set (This : in out GPIO_Point) is
    begin
       This.Periph.BSRR.BS.Val := GPIO_Pin'Enum_Rep (This.Pin);
       --  The bit-set and bit-reset registers ignore writes of zeros so we
@@ -200,7 +211,8 @@ package body STM32.GPIO is
    -- Clear --
    -----------
 
-   overriding procedure Clear (This : in out GPIO_Point) is
+   overriding
+   procedure Clear (This : in out GPIO_Point) is
    begin
       This.Periph.BSRR.BR.Val := GPIO_Pin'Enum_Rep (This.Pin);
       --  The bit-set and bit-reset registers ignore writes of zeros so we
@@ -222,7 +234,8 @@ package body STM32.GPIO is
    -- Toggle --
    ------------
 
-   overriding procedure Toggle (This : in out GPIO_Point) is
+   overriding
+   procedure Toggle (This : in out GPIO_Point) is
    begin
       This.Periph.ODR.ODR.Val :=
         This.Periph.ODR.ODR.Val xor GPIO_Pin'Enum_Rep (This.Pin);
@@ -313,32 +326,46 @@ package body STM32.GPIO is
       --  don't want to preclude debugging, hence the following:
 
       Asm
-        ("mov  r3, %2" &
-         LF &
-         HT &  -- Temp := LCCK or Pin, ie both set
+        ("mov  r3, %2"
+         & LF
+         & HT
+         &  -- Temp := LCCK or Pin, ie both set
 
-         "orr  r3, %1" & LF & HT &  -- Temp := LCCK or Pin, ie both set
+                                                "orr  r3, %1"
+         & LF
+         & HT
+         &  -- Temp := LCCK or Pin, ie both set
 
-         "str  r3, [%0, #28]" &
-         LF &
-         HT &  -- Port.LCKR := Temp
+                                                "str  r3, [%0, #28]"
+         & LF
+         & HT
+         &  -- Port.LCKR := Temp
 
-         "str  %1, [%0, #28]" & LF &
-         HT &  -- Port.LCKR := Pin alone, LCCK bit cleared
+                                 "str  %1, [%0, #28]"
+         & LF
+         & HT
+         &  -- Port.LCKR := Pin alone, LCCK bit cleared
 
-         "str  r3, [%0, #28]" &
-         LF &
-         HT &  -- Port.LCKR := Temp
+                                                        "str  r3, [%0, #28]"
+         & LF
+         & HT
+         &  -- Port.LCKR := Temp
 
-         "ldr  r3, [%0, #28]" & LF & HT &  -- Temp := Port.LCKR
+                                 "ldr  r3, [%0, #28]"
+         & LF
+         & HT
+         &  -- Temp := Port.LCKR
 
-         "ldr  r3, [%0, #28]" & LF & HT,   -- Temp := Port.LCKR
+                                 "ldr  r3, [%0, #28]"
+         & LF
+         & HT,   -- Temp := Port.LCKR
 
-         Inputs =>
+         Inputs   =>
            [Address'Asm_Input ("r", This'Address), -- %0
             (GPIO_Pin'Asm_Input ("r", Pin)),
             (Positive'Asm_Input ("r", LCKK_Val))],       -- %1
-         Volatile => True, Clobber => ("r3"));
+         Volatile => True,
+         Clobber  => ("r3"));
    end Lock_The_Pin;
 
    ----------
@@ -378,11 +405,13 @@ package body STM32.GPIO is
       case Config.Mode is
          when Mode_In | Mode_Analog =>
             null;
+
          when Mode_Out =>
             This.Periph.OTYPER.OT.Arr (Index) :=
               Config.Output_Type = Open_Drain;
             This.Periph.OSPEEDR.Arr (Index) :=
               Pin_Output_Speeds'Enum_Rep (Config.Speed);
+
          when Mode_AF =>
             This.Periph.OTYPER.OT.Arr (Index) :=
               Config.AF_Output_Type = Open_Drain;
@@ -397,8 +426,7 @@ package body STM32.GPIO is
    ------------------
 
    procedure Configure_IO
-     (Points : GPIO_Points; Config : GPIO_Port_Configuration)
-   is
+     (Points : GPIO_Points; Config : GPIO_Port_Configuration) is
    begin
       for Point of Points loop
          Point.Configure_IO (Config);
@@ -426,8 +454,7 @@ package body STM32.GPIO is
    ----------------------------------
 
    procedure Configure_Alternate_Function
-     (Points : GPIO_Points; AF : GPIO_Alternate_Function)
-   is
+     (Points : GPIO_Points; AF : GPIO_Alternate_Function) is
    begin
       for Point of Points loop
          Point.Configure_Alternate_Function (AF);

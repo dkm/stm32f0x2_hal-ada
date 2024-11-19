@@ -47,7 +47,7 @@
 --  Note that there are board implementation assumptions represented by the
 --  private function APB_Clock.
 
---  Copyright 2022 (C) Marc Poulhiès
+--  Copyright 2022 (C) Marc PoulhiÃ¨s
 --  This file has been adapted for the STM32F0 (ARM Cortex M4)
 --  Beware that most of this has been reused from Ada Drivers Library
 --  (https://github.com/AdaCore/Ada_Drivers_Library) and has been
@@ -61,39 +61,36 @@ package STM32.USARTs is
 
    type Internal_USART is limited private;
 
-   type USART (Periph : not null access Internal_USART) is
-     limited new HAL.UART.UART_Port with private;
+   type USART (Periph : not null access Internal_USART) is limited
+     new HAL.UART.UART_Port with private;
 
-   procedure Enable (This : in out USART) with
-      Post => Enabled (This),
-      Inline;
+   procedure Enable (This : in out USART)
+   with Post => Enabled (This), Inline;
 
-   procedure Disable (This : in out USART) with
-      Post => not Enabled (This),
-      Inline;
+   procedure Disable (This : in out USART)
+   with Post => not Enabled (This), Inline;
 
-   function Enabled (This : USART) return Boolean with
-      Inline;
+   function Enabled (This : USART) return Boolean
+   with Inline;
 
-   procedure Receive (This : USART; Data : out UInt9) with
-      Inline;
+   procedure Receive (This : USART; Data : out UInt9)
+   with Inline;
    --  reads Device.DR into Data
 
-   function Current_Input (This : USART) return UInt9 with
-      Inline;
+   function Current_Input (This : USART) return UInt9
+   with Inline;
    --  returns Device.DR
 
-   procedure Transmit (This : in out USART; Data : UInt9) with
-      Inline;
+   procedure Transmit (This : in out USART; Data : UInt9)
+   with Inline;
 
-   function Tx_Ready (This : USART) return Boolean with
-      Inline;
+   function Tx_Ready (This : USART) return Boolean
+   with Inline;
 
-   function Rx_Ready (This : USART) return Boolean with
-      Inline;
+   function Rx_Ready (This : USART) return Boolean
+   with Inline;
 
-   type Stop_Bits is (Stopbits_1, Stopbits_2) with
-      Size => 2;
+   type Stop_Bits is (Stopbits_1, Stopbits_2) with Size => 2;
 
    for Stop_Bits use (Stopbits_1 => 0, Stopbits_2 => 2#10#);
 
@@ -122,117 +119,132 @@ package STM32.USARTs is
    procedure Set_Mode (This : in out USART; To : UART_Modes);
 
    type Flow_Control is
-     (No_Flow_Control, RTS_Flow_Control, CTS_Flow_Control,
+     (No_Flow_Control,
+      RTS_Flow_Control,
+      CTS_Flow_Control,
       RTS_CTS_Flow_Control);
 
    procedure Set_Flow_Control (This : in out USART; To : Flow_Control);
 
    type USART_Interrupt is
-     (Parity_Error, Transmit_Data_Register_Empty, Transmission_Complete,
-      Received_Data_Not_Empty, Idle_Line_Detection, Line_Break_Detection,
-      Clear_To_Send, Error);
+     (Parity_Error,
+      Transmit_Data_Register_Empty,
+      Transmission_Complete,
+      Received_Data_Not_Empty,
+      Idle_Line_Detection,
+      Line_Break_Detection,
+      Clear_To_Send,
+      Error);
 
-   procedure Enable_Interrupts
-     (This : in out USART; Source : USART_Interrupt) with
-      Post => Interrupt_Enabled (This, Source),
-      Inline;
+   procedure Enable_Interrupts (This : in out USART; Source : USART_Interrupt)
+   with Post => Interrupt_Enabled (This, Source), Inline;
 
-   procedure Disable_Interrupts
-     (This : in out USART; Source : USART_Interrupt) with
-      Post => not Interrupt_Enabled (This, Source),
-      Inline;
+   procedure Disable_Interrupts (This : in out USART; Source : USART_Interrupt)
+   with Post => not Interrupt_Enabled (This, Source), Inline;
 
    function Interrupt_Enabled
-     (This : USART; Source : USART_Interrupt) return Boolean with
-      Inline;
+     (This : USART; Source : USART_Interrupt) return Boolean
+   with Inline;
 
    type USART_Status_Flag is
-     (Parity_Error_Indicated, Framing_Error_Indicated,
-      USART_Noise_Error_Indicated, Overrun_Error_Indicated,
-      Idle_Line_Detection_Indicated, Read_Data_Register_Not_Empty,
-      Transmission_Complete_Indicated, Transmit_Data_Register_Empty,
-      Line_Break_Detection_Indicated, Clear_To_Send_Indicated);
+     (Parity_Error_Indicated,
+      Framing_Error_Indicated,
+      USART_Noise_Error_Indicated,
+      Overrun_Error_Indicated,
+      Idle_Line_Detection_Indicated,
+      Read_Data_Register_Not_Empty,
+      Transmission_Complete_Indicated,
+      Transmit_Data_Register_Empty,
+      Line_Break_Detection_Indicated,
+      Clear_To_Send_Indicated);
 
-   function Status (This : USART; Flag : USART_Status_Flag) return Boolean with
-      Inline;
+   function Status (This : USART; Flag : USART_Status_Flag) return Boolean
+   with Inline;
 
-   procedure Clear_Status (This : in out USART; Flag : USART_Status_Flag) with
-      Inline;
+   procedure Clear_Status (This : in out USART; Flag : USART_Status_Flag)
+   with Inline;
 
-   procedure Enable_DMA_Transmit_Requests (This : in out USART) with
-      Inline,
-      Post => DMA_Transmit_Requests_Enabled (This);
+   procedure Enable_DMA_Transmit_Requests (This : in out USART)
+   with Inline, Post => DMA_Transmit_Requests_Enabled (This);
 
-   procedure Disable_DMA_Transmit_Requests (This : in out USART) with
-      Inline,
-      Post => not DMA_Transmit_Requests_Enabled (This);
+   procedure Disable_DMA_Transmit_Requests (This : in out USART)
+   with Inline, Post => not DMA_Transmit_Requests_Enabled (This);
 
-   function DMA_Transmit_Requests_Enabled (This : USART) return Boolean with
-      Inline;
+   function DMA_Transmit_Requests_Enabled (This : USART) return Boolean
+   with Inline;
 
-   procedure Enable_DMA_Receive_Requests (This : in out USART) with
-      Inline,
-      Post => DMA_Receive_Requests_Enabled (This);
+   procedure Enable_DMA_Receive_Requests (This : in out USART)
+   with Inline, Post => DMA_Receive_Requests_Enabled (This);
 
-   procedure Disable_DMA_Receive_Requests (This : in out USART) with
-      Inline,
-      Post => not DMA_Receive_Requests_Enabled (This);
+   procedure Disable_DMA_Receive_Requests (This : in out USART)
+   with Inline, Post => not DMA_Receive_Requests_Enabled (This);
 
-   function DMA_Receive_Requests_Enabled (This : USART) return Boolean with
-      Inline;
+   function DMA_Receive_Requests_Enabled (This : USART) return Boolean
+   with Inline;
 
-   procedure Pause_DMA_Transmission (This : in out USART) renames
-     Disable_DMA_Transmit_Requests;
+   procedure Pause_DMA_Transmission (This : in out USART)
+   renames Disable_DMA_Transmit_Requests;
 
-   procedure Resume_DMA_Transmission (This : in out USART) with
-      Inline,
-      Post => DMA_Transmit_Requests_Enabled (This) and Enabled (This);
+   procedure Resume_DMA_Transmission (This : in out USART)
+   with
+     Inline,
+     Post => DMA_Transmit_Requests_Enabled (This) and Enabled (This);
 
-   procedure Pause_DMA_Reception (This : in out USART) renames
-     Disable_DMA_Receive_Requests;
+   procedure Pause_DMA_Reception (This : in out USART)
+   renames Disable_DMA_Receive_Requests;
 
-   procedure Resume_DMA_Reception (This : in out USART) with
-      Inline,
-      Post => DMA_Receive_Requests_Enabled (This) and Enabled (This);
+   procedure Resume_DMA_Reception (This : in out USART)
+   with Inline, Post => DMA_Receive_Requests_Enabled (This) and Enabled (This);
 
-   function Data_Receive_Register_Address
-     (This : USART) return System.Address with
-      Inline;
+   function Data_Receive_Register_Address (This : USART) return System.Address
+   with Inline;
 
-   function Data_Transmit_Register_Address
-     (This : USART) return System.Address with
-      Inline;
-      --  Returns the address of the USART Data Register. This is exported
-      --  STRICTLY for the sake of clients driving a USART via DMA. All other
-      --  clients of this package should use the procedural interfaces Transmit
-      --  and Receive instead of directly accessing the Data Register!
-      --  Seriously, don't use this function otherwise.
+   function Data_Transmit_Register_Address (This : USART) return System.Address
+   with Inline;
+   --  Returns the address of the USART Data Register. This is exported
+   --  STRICTLY for the sake of clients driving a USART via DMA. All other
+   --  clients of this package should use the procedural interfaces Transmit
+   --  and Receive instead of directly accessing the Data Register!
+   --  Seriously, don't use this function otherwise.
 
    -----------------------------
    -- HAL.UART implementation --
    -----------------------------
 
-   overriding function Data_Size (This : USART) return HAL.UART.UART_Data_Size;
+   overriding
+   function Data_Size (This : USART) return HAL.UART.UART_Data_Size;
 
-   overriding procedure Transmit
-     (This    : in out USART; Data : UART_Data_8b; Status : out UART_Status;
-      Timeout :        Natural := 1_000) with
-      Pre'Class => Data_Size (This) = Data_Size_8b;
+   overriding
+   procedure Transmit
+     (This    : in out USART;
+      Data    : UART_Data_8b;
+      Status  : out UART_Status;
+      Timeout : Natural := 1_000)
+   with Pre'Class => Data_Size (This) = Data_Size_8b;
 
-   overriding procedure Transmit
-     (This    : in out USART; Data : UART_Data_9b; Status : out UART_Status;
-      Timeout :        Natural := 1_000) with
-      Pre'Class => Data_Size (This) = Data_Size_9b;
+   overriding
+   procedure Transmit
+     (This    : in out USART;
+      Data    : UART_Data_9b;
+      Status  : out UART_Status;
+      Timeout : Natural := 1_000)
+   with Pre'Class => Data_Size (This) = Data_Size_9b;
 
-   overriding procedure Receive
-     (This : in out USART; Data : out UART_Data_8b; Status : out UART_Status;
-      Timeout :        Natural := 1_000) with
-      Pre'Class => Data_Size (This) = Data_Size_8b;
+   overriding
+   procedure Receive
+     (This    : in out USART;
+      Data    : out UART_Data_8b;
+      Status  : out UART_Status;
+      Timeout : Natural := 1_000)
+   with Pre'Class => Data_Size (This) = Data_Size_8b;
 
-   overriding procedure Receive
-     (This : in out USART; Data : out UART_Data_9b; Status : out UART_Status;
-      Timeout :        Natural := 1_000) with
-      Pre'Class => Data_Size (This) = Data_Size_9b;
+   overriding
+   procedure Receive
+     (This    : in out USART;
+      Data    : out UART_Data_9b;
+      Status  : out UART_Status;
+      Timeout : Natural := 1_000)
+   with Pre'Class => Data_Size (This) = Data_Size_9b;
 
 private
 
@@ -247,7 +259,8 @@ private
 
    type Internal_USART is new STM32_SVD.USART.USART_Peripheral;
 
-   type USART (Periph : not null access Internal_USART)
-   is limited new HAL.UART.UART_Port with null record;
+   type USART (Periph : not null access Internal_USART) is limited
+     new HAL.UART.UART_Port
+   with null record;
 
 end STM32.USARTs;

@@ -28,7 +28,8 @@ package body STM32.Device is
    begin
       Asm
         ("1:" & LF & HT & "sub %0, #1" & LF & HT & "bne 1b" & LF & HT,
-         Inputs   => (UInt32'Asm_Input ("r", Tmp)), Clobber => "r3",
+         Inputs   => (UInt32'Asm_Input ("r", Tmp)),
+         Clobber  => "r3",
          Volatile => True);
    end Delay_Cycles;
 
@@ -120,9 +121,9 @@ package body STM32.Device is
          RCC_Periph.AHBRSTR.IOPDRST := True;
          RCC_Periph.AHBRSTR.IOPDRST := False;
 
-      --  There is an error in the SVD file where this BIT (21 in RCC_AHBRSTR) is
-      --  missing.
-      --  elsif This'Address = GPIOE_Base then
+         --  There is an error in the SVD file where this BIT (21 in RCC_AHBRSTR) is
+         --  missing.
+         --  elsif This'Address = GPIOE_Base then
          --     RCC_Periph.AHBRSTR.IOPERST := True;
          --     RCC_Periph.AHBRSTR.IOPERST := False;
       elsif This'Address = GPIOF_Base then
@@ -220,24 +221,31 @@ package body STM32.Device is
          when 0 =>
             --  HSI as source
             Result.SYSCLK := HSI_VALUE;
+
          when 1 =>
             --  HSE as source
             Result.SYSCLK := HSE_VALUE;
+
          when 2 =>
             --  PLL as source
             declare
-               Input_Source : constant Uint2  := RCC_Periph.CFGR.PLLSRC;
-               Prediv : constant UInt32 := UInt32 (RCC_Periph.CFGR2.PREDIV);
-               Pllmul : constant UInt32 := UInt32 (RCC_Periph.CFGR.PLLMUL);
-               Pllval       : UInt32          := HSI_VALUE;
+               Input_Source : constant Uint2 := RCC_Periph.CFGR.PLLSRC;
+               Prediv       : constant UInt32 :=
+                 UInt32 (RCC_Periph.CFGR2.PREDIV);
+               Pllmul       : constant UInt32 :=
+                 UInt32 (RCC_Periph.CFGR.PLLMUL);
+               Pllval       : UInt32 := HSI_VALUE;
             begin
                case Input_Source is
                   when 0 =>
                      Pllval := HSI_VALUE / 2;
+
                   when 1 =>
                      Pllval := HSI_VALUE / Prediv;
+
                   when 2 =>
                      Pllval := HSE_VALUE / Prediv;
+
                   when 3 =>
                      Pllval := HSI48_VALUE / Prediv;
                end case;
@@ -246,6 +254,7 @@ package body STM32.Device is
 
                Result.SYSCLK := Pllval;
             end;
+
          when 3 =>
             Result.SYSCLK := HSI48_VALUE;
       end case;

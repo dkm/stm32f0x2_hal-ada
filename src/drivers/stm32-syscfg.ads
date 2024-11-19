@@ -44,7 +44,7 @@
 --  This file provides register definitions for the STM32F0 (ARM Cortex M4)
 --  microcontrollers from ST Microelectronics.
 
---  Copyright 2022 (C) Marc Poulhiès
+--  Copyright 2022 (C) Marc PoulhiÃ¨s
 --  This file has been adapted for the STM32F0 (ARM Cortex M4)
 --  Beware that most of this has been reused from Ada Drivers Library
 --  (https://github.com/AdaCore/Ada_Drivers_Library) and has been
@@ -54,17 +54,16 @@ with STM32.GPIO; use STM32.GPIO;
 
 package STM32.SYSCFG is
 
-   procedure Connect_External_Interrupt (Port : GPIO_Port; Pin : GPIO_Pin) with
-      Inline;
+   procedure Connect_External_Interrupt (Port : GPIO_Port; Pin : GPIO_Pin)
+   with Inline;
 
-   procedure Connect_External_Interrupt (Point : GPIO_Point) with
-      Inline;
+   procedure Connect_External_Interrupt (Point : GPIO_Point)
+   with Inline;
 
-   procedure Connect_External_Interrupt
-     (Port : GPIO_Port; Pins : GPIO_Pins) with
-      Inline;
+   procedure Connect_External_Interrupt (Port : GPIO_Port; Pins : GPIO_Pins)
+   with Inline;
 
-   procedure Clear_External_Interrupt (Pin : GPIO_Pin) with
-      Inline;
+   procedure Clear_External_Interrupt (Pin : GPIO_Pin)
+   with Inline;
 
 end STM32.SYSCFG;

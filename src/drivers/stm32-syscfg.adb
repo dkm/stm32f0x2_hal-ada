@@ -44,7 +44,7 @@
 --  This file provides register definitions for the STM32F0 (ARM Cortex M4)
 --  microcontrollers from ST Microelectronics.
 
---  Copyright 2022 (C) Marc Poulhiès
+--  Copyright 2022 (C) Marc PoulhiÃ¨s
 --  This file has been adapted for the STM32F0 (ARM Cortex M4)
 --  Beware that most of this has been reused from Ada Drivers Library
 --  (https://github.com/AdaCore/Ada_Drivers_Library) and has been
@@ -82,10 +82,13 @@ package body STM32.SYSCFG is
       case Pin is
          when 0 .. 3 =>
             SYSCFG_COMP_Periph.SYSCFG_EXTICR1.EXTI.Arr (Pin) := Port_Id;
+
          when 4 .. 7 =>
             SYSCFG_COMP_Periph.SYSCFG_EXTICR2.EXTI.Arr (Pin) := Port_Id;
+
          when 8 .. 11 =>
             SYSCFG_COMP_Periph.SYSCFG_EXTICR3.EXTI.Arr (Pin) := Port_Id;
+
          when 12 .. 15 =>
             SYSCFG_COMP_Periph.SYSCFG_EXTICR4.EXTI.Arr (Pin) := Port_Id;
       end case;

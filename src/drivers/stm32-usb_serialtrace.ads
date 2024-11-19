@@ -2,7 +2,7 @@
 --                                                                           --
 --                              STM32F0 USB                                  --
 --                                                                           --
---                  Copyright (C) 2022      Marc Poulhiès                    --
+--                  Copyright (C) 2022      Marc PoulhiÃ¨s                    --
 --                                                                           --
 --    STM32F0 USB is free software: you can redistribute it and/or           --
 --    modify it under the terms of the GNU General Public License as         --

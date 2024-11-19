@@ -1,6 +1,6 @@
 --  SPDX-License-Identifier: BSD-3-Clause
 
---  Copyright 2022 (C) Marc Poulhiès
+--  Copyright 2022 (C) Marc PoulhiÃ¨s
 --  This file has been adapted for the STM32F0 (ARM Cortex M4)
 --  Beware that most of this has been reused from Ada Drivers Library
 --  (https://github.com/AdaCore/Ada_Drivers_Library) and has been
@@ -13,8 +13,7 @@ with STM32_SVD.CRS; use STM32_SVD.CRS;
 package body STM32.RCC is
 
    procedure Set_Sys_Clock_Source
-     (This : in out Rcc_Cfgr; Source : Sys_Clock_Source)
-   is
+     (This : in out Rcc_Cfgr; Source : Sys_Clock_Source) is
    begin
       This.Clock_Source := Source;
    end Set_Sys_Clock_Source;
@@ -39,8 +38,10 @@ package body STM32.RCC is
       case Source is
          when Hse =>
             return Hse_Freq;
+
          when Hsi =>
             return Hsi_Freq;
+
          when Hsi48 =>
             return HSI48_Freq;
       end case;
@@ -60,6 +61,7 @@ package body STM32.RCC is
             while not RCC_Periph.CR2.HSI48RDY loop
                null;
             end loop;
+
          when Hse =>
             raise Program_Error;
       end case;
@@ -67,7 +69,7 @@ package body STM32.RCC is
 
    procedure Freeze (This : in out Rcc_Cfgr) is
       Src_Clock_Freq : constant Positive := Get_Freq (This.Clock_Source);
-      Pllmul_Bits    : Integer  := 0;
+      Pllmul_Bits    : Integer := 0;
 
       --  Real_Sysclk : Natural := 0;
 
@@ -83,6 +85,7 @@ package body STM32.RCC is
       if This.Sysclk = Src_Clock_Freq then
          Pllmul_Bits := 0;
          --  Real_Sysclk := Src_Clock_Freq;
+
       else
          --  User requests a freq that needs some config.
          raise Program_Error;
@@ -97,6 +100,7 @@ package body STM32.RCC is
          when PLL =>
             --  no pll support yet
             raise Program_Error;
+
          when HSI48 =>
             --  False : HSI48, True : PLL
             RCC_Periph.CFGR3.USBSW := False;
@@ -110,12 +114,12 @@ package body STM32.RCC is
       if This.Use_Crs then
          RCC_Periph.APB1ENR.CRSEN := True;
          CRS_Periph.CR.AUTOTRIMEN := True;
-         CRS_Periph.CR.CEN        := True;
+         CRS_Periph.CR.CEN := True;
       end if;
 
       --  write config
       Cfgr_To_Write.Sw := 16#02#; -- HSI48
-      RCC_Periph.CFGR  := Cfgr_To_Write;
+      RCC_Periph.CFGR := Cfgr_To_Write;
    end Freeze;
 
 end STM32.RCC;

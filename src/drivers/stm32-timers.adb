@@ -41,7 +41,7 @@
 --
 --  SPDX-License-Identifier: BSD-3-Clause
 
---  Copyright 2022 (C) Marc Poulhiès
+--  Copyright 2022 (C) Marc PoulhiÃ¨s
 --  This file has been adapted for the STM32F0 (ARM Cortex M4)
 --  Beware that most of this has been reused from Ada Drivers Library
 --  (https://github.com/AdaCore/Ada_Drivers_Library) and has been
@@ -54,10 +54,9 @@ package body STM32.Timers is
    ---------------
 
    procedure Configure
-     (This : in out Timer; Prescaler : UInt16; Period : UInt32)
-   is
+     (This : in out Timer; Prescaler : UInt16; Period : UInt32) is
    begin
-      This.ARR       := Period;
+      This.ARR := Period;
       This.Prescaler := Prescaler;
    end Configure;
 
@@ -66,15 +65,16 @@ package body STM32.Timers is
    ---------------
 
    procedure Configure
-     (This          : in out Timer; Prescaler : UInt16; Period : UInt32;
-      Clock_Divisor :        Timer_Clock_Divisor;
-      Counter_Mode  :        Timer_Counter_Alignment_Mode)
-   is
+     (This          : in out Timer;
+      Prescaler     : UInt16;
+      Period        : UInt32;
+      Clock_Divisor : Timer_Clock_Divisor;
+      Counter_Mode  : Timer_Counter_Alignment_Mode) is
    begin
-      This.ARR                := Period;
-      This.Prescaler          := Prescaler;
+      This.ARR := Period;
+      This.Prescaler := Prescaler;
       This.CR1.Clock_Division := Clock_Divisor;
-      This.CR1.Mode_And_Dir   := Counter_Mode;
+      This.CR1.Mode_And_Dir := Counter_Mode;
    end Configure;
 
    ----------------------
@@ -82,8 +82,7 @@ package body STM32.Timers is
    ----------------------
 
    procedure Set_Counter_Mode
-     (This : in out Timer; Value : Timer_Counter_Alignment_Mode)
-   is
+     (This : in out Timer; Value : Timer_Counter_Alignment_Mode) is
    begin
       This.CR1.Mode_And_Dir := Value;
    end Set_Counter_Mode;
@@ -93,8 +92,7 @@ package body STM32.Timers is
    ------------------------
 
    procedure Set_Clock_Division
-     (This : in out Timer; Value : Timer_Clock_Divisor)
-   is
+     (This : in out Timer; Value : Timer_Clock_Divisor) is
    begin
       This.CR1.Clock_Division := Value;
    end Set_Clock_Division;
@@ -113,17 +111,19 @@ package body STM32.Timers is
    ---------------
 
    procedure Configure
-     (This          : in out Timer; Prescaler : UInt16; Period : UInt32;
-      Clock_Divisor :        Timer_Clock_Divisor;
-      Counter_Mode  :        Timer_Counter_Alignment_Mode; Repetitions : UInt8)
-   is
+     (This          : in out Timer;
+      Prescaler     : UInt16;
+      Period        : UInt32;
+      Clock_Divisor : Timer_Clock_Divisor;
+      Counter_Mode  : Timer_Counter_Alignment_Mode;
+      Repetitions   : UInt8) is
    begin
-      This.ARR                := Period;
-      This.Prescaler          := Prescaler;
+      This.ARR := Period;
+      This.Prescaler := Prescaler;
       This.CR1.Clock_Division := Clock_Divisor;
-      This.CR1.Mode_And_Dir   := Counter_Mode;
-      This.RCR                := UInt32 (Repetitions);
-      This.EGR                := Immediate'Enum_Rep;
+      This.CR1.Mode_And_Dir := Counter_Mode;
+      This.RCR := UInt32 (Repetitions);
+      This.EGR := Immediate'Enum_Rep;
    end Configure;
 
    ------------
@@ -265,8 +265,7 @@ package body STM32.Timers is
    ----------------------
 
    procedure Enable_Interrupt
-     (This : in out Timer; Sources : Timer_Interrupt_List)
-   is
+     (This : in out Timer; Sources : Timer_Interrupt_List) is
    begin
       for Source of Sources loop
          This.DIER := This.DIER or Source'Enum_Rep;
@@ -288,8 +287,7 @@ package body STM32.Timers is
    -----------------------------
 
    procedure Clear_Pending_Interrupt
-     (This : in out Timer; Source : Timer_Interrupt)
-   is
+     (This : in out Timer; Source : Timer_Interrupt) is
    begin
       This.SR := not Source'Enum_Rep;
       --  We do not, and must not, use the read-modify-write pattern because
@@ -305,8 +303,7 @@ package body STM32.Timers is
    -----------------------
 
    function Interrupt_Enabled
-     (This : Timer; Source : Timer_Interrupt) return Boolean
-   is
+     (This : Timer; Source : Timer_Interrupt) return Boolean is
    begin
       return (This.DIER and Source'Enum_Rep) = Source'Enum_Rep;
    end Interrupt_Enabled;
@@ -350,8 +347,7 @@ package body STM32.Timers is
    ------------------------
 
    procedure Disable_DMA_Source
-     (This : in out Timer; Source : Timer_DMA_Source)
-   is
+     (This : in out Timer; Source : Timer_DMA_Source) is
    begin
       This.DIER := This.DIER and not Source'Enum_Rep;
    end Disable_DMA_Source;
@@ -361,8 +357,7 @@ package body STM32.Timers is
    ------------------------
 
    function DMA_Source_Enabled
-     (This : Timer; Source : Timer_DMA_Source) return Boolean
-   is
+     (This : Timer; Source : Timer_DMA_Source) return Boolean is
    begin
       return (This.DIER and Source'Enum_Rep) = Source'Enum_Rep;
    end DMA_Source_Enabled;
@@ -372,12 +367,12 @@ package body STM32.Timers is
    -------------------------
 
    procedure Configure_Prescaler
-     (This        : in out Timer; Prescaler : UInt16;
-      Reload_Mode :        Timer_Prescaler_Reload_Mode)
-   is
+     (This        : in out Timer;
+      Prescaler   : UInt16;
+      Reload_Mode : Timer_Prescaler_Reload_Mode) is
    begin
       This.Prescaler := Prescaler;
-      This.EGR       := Reload_Mode'Enum_Rep;
+      This.EGR := Reload_Mode'Enum_Rep;
    end Configure_Prescaler;
 
    -------------------
@@ -385,9 +380,9 @@ package body STM32.Timers is
    -------------------
 
    procedure Configure_DMA
-     (This         : in out Timer; Base_Address : Timer_DMA_Base_Address;
-      Burst_Length :        Timer_DMA_Burst_Length)
-   is
+     (This         : in out Timer;
+      Base_Address : Timer_DMA_Base_Address;
+      Burst_Length : Timer_DMA_Burst_Length) is
    begin
       This.DCR.Base_Address := Base_Address;
       This.DCR.Burst_Length := Burst_Length;
@@ -397,9 +392,10 @@ package body STM32.Timers is
    -- Enable_Capture_Compare_DMA --
    --------------------------------
 
-   procedure Enable_Capture_Compare_DMA (This : in out Timer)
-   --  TODO: note that the CCDS field description in the RM, page 550, seems
-   --  to indicate other than simply enabled/disabled
+   procedure Enable_Capture_Compare_DMA
+     (This : in out Timer)
+      --  TODO: note that the CCDS field description in the RM, page 550, seems
+      --  to indicate other than simply enabled/disabled
    is
    begin
       This.CR2.Capture_Compare_DMA_Selection := True;
@@ -409,9 +405,10 @@ package body STM32.Timers is
    -- Disable_Capture_Compare_DMA --
    ---------------------------------
 
-   procedure Disable_Capture_Compare_DMA (This : in out Timer)
-   --  TODO: note that the CCDS field description in the RM, page 550, seems
-   --  to indicate other than simply enabled/disabled
+   procedure Disable_Capture_Compare_DMA
+     (This : in out Timer)
+      --  TODO: note that the CCDS field description in the RM, page 550, seems
+      --  to indicate other than simply enabled/disabled
    is
    begin
       This.CR2.Capture_Compare_DMA_Selection := False;
@@ -440,8 +437,7 @@ package body STM32.Timers is
    -----------------------
 
    procedure Set_UpdateRequest
-     (This : in out Timer; Source : Timer_Update_Source)
-   is
+     (This : in out Timer; Source : Timer_Update_Source) is
    begin
       This.CR1.Update_Request_Source := Source /= Global;
    end Set_UpdateRequest;
@@ -451,8 +447,7 @@ package body STM32.Timers is
    ---------------------------
 
    procedure Select_One_Pulse_Mode
-     (This : in out Timer; Mode : Timer_One_Pulse_Mode)
-   is
+     (This : in out Timer; Mode : Timer_One_Pulse_Mode) is
    begin
       This.CR1.One_Pulse_Mode := Mode;
    end Select_One_Pulse_Mode;
@@ -471,8 +466,7 @@ package body STM32.Timers is
    -----------------------
 
    function Current_Counter_Mode
-     (This : Timer) return Timer_Counter_Alignment_Mode
-   is
+     (This : Timer) return Timer_Counter_Alignment_Mode is
    begin
       if Basic_Timer (This) then
          return Up;
@@ -498,8 +492,7 @@ package body STM32.Timers is
    ---------------------------
 
    procedure Select_Output_Trigger
-     (This : in out Timer; Source : Timer_Trigger_Output_Source)
-   is
+     (This : in out Timer; Source : Timer_Trigger_Output_Source) is
    begin
       This.CR2.Master_Mode_Selection := Source;
    end Select_Output_Trigger;
@@ -537,14 +530,14 @@ package body STM32.Timers is
    --------------------------------
 
    procedure Configure_External_Trigger
-     (This      : in out Timer; Polarity : Timer_External_Trigger_Polarity;
-      Prescaler :        Timer_External_Trigger_Prescaler;
-      Filter    :        Timer_External_Trigger_Filter)
-   is
+     (This      : in out Timer;
+      Polarity  : Timer_External_Trigger_Polarity;
+      Prescaler : Timer_External_Trigger_Prescaler;
+      Filter    : Timer_External_Trigger_Filter) is
    begin
-      This.SMCR.External_Trigger_Polarity  := Polarity;
+      This.SMCR.External_Trigger_Polarity := Polarity;
       This.SMCR.External_Trigger_Prescaler := Prescaler;
-      This.SMCR.External_Trigger_Filter    := Filter;
+      This.SMCR.External_Trigger_Filter := Filter;
    end Configure_External_Trigger;
 
    ---------------------------------
@@ -552,8 +545,7 @@ package body STM32.Timers is
    ---------------------------------
 
    procedure Configure_As_External_Clock
-     (This : in out Timer; Source : Timer_Internal_Trigger_Source)
-   is
+     (This : in out Timer; Source : Timer_Internal_Trigger_Source) is
    begin
       Select_Input_Trigger (This, Source);
       Select_Slave_Mode (This, External_1);
@@ -564,10 +556,10 @@ package body STM32.Timers is
    ---------------------------------
 
    procedure Configure_As_External_Clock
-     (This     : in out Timer; Source : Timer_External_Clock_Source;
-      Polarity :        Timer_Input_Capture_Polarity;
-      Filter   :        Timer_Input_Capture_Filter)
-   is
+     (This     : in out Timer;
+      Source   : Timer_External_Clock_Source;
+      Polarity : Timer_Input_Capture_Polarity;
+      Filter   : Timer_Input_Capture_Filter) is
    begin
       if Source = Filtered_Timer_Input_2 then
          Configure_Channel_Input
@@ -595,10 +587,10 @@ package body STM32.Timers is
    ------------------------------------
 
    procedure Configure_External_Clock_Mode1
-     (This      : in out Timer; Polarity : Timer_External_Trigger_Polarity;
-      Prescaler :        Timer_External_Trigger_Prescaler;
-      Filter    :        Timer_External_Trigger_Filter)
-   is
+     (This      : in out Timer;
+      Polarity  : Timer_External_Trigger_Polarity;
+      Prescaler : Timer_External_Trigger_Prescaler;
+      Filter    : Timer_External_Trigger_Filter) is
    begin
       Configure_External_Trigger (This, Polarity, Prescaler, Filter);
       Select_Slave_Mode (This, External_1);
@@ -610,10 +602,10 @@ package body STM32.Timers is
    ------------------------------------
 
    procedure Configure_External_Clock_Mode2
-     (This      : in out Timer; Polarity : Timer_External_Trigger_Polarity;
-      Prescaler :        Timer_External_Trigger_Prescaler;
-      Filter    :        Timer_External_Trigger_Filter)
-   is
+     (This      : in out Timer;
+      Polarity  : Timer_External_Trigger_Polarity;
+      Prescaler : Timer_External_Trigger_Prescaler;
+      Filter    : Timer_External_Trigger_Filter) is
    begin
       Configure_External_Trigger (This, Polarity, Prescaler, Filter);
       This.SMCR.External_Clock_Enable := True;
@@ -624,8 +616,7 @@ package body STM32.Timers is
    --------------------------
 
    procedure Select_Input_Trigger
-     (This : in out Timer; Source : Timer_Trigger_Input_Source)
-   is
+     (This : in out Timer; Source : Timer_Trigger_Input_Source) is
    begin
       This.SMCR.Trigger_Selection := Source;
    end Select_Input_Trigger;
@@ -635,11 +626,12 @@ package body STM32.Timers is
    ------------------------------
 
    procedure Configure_Channel_Output
-     (This     : in out Timer; Channel : Timer_Channel;
-      Mode     :        Timer_Output_Compare_And_PWM_Mode;
-      State    :        Timer_Capture_Compare_State; Pulse : UInt32;
-      Polarity :        Timer_Output_Compare_Polarity)
-   is
+     (This     : in out Timer;
+      Channel  : Timer_Channel;
+      Mode     : Timer_Output_Compare_And_PWM_Mode;
+      State    : Timer_Capture_Compare_State;
+      Pulse    : UInt32;
+      Polarity : Timer_Output_Compare_Polarity) is
    begin
       --  first disable the channel
       This.CCER (Channel).CCxE := Disable;
@@ -661,37 +653,41 @@ package body STM32.Timers is
    ------------------------------
 
    procedure Configure_Channel_Output
-     (This                     : in out Timer; Channel : Timer_Channel;
-      Mode                     :        Timer_Output_Compare_And_PWM_Mode;
-      State                    : Timer_Capture_Compare_State; Pulse : UInt32;
-      Polarity                 :        Timer_Output_Compare_Polarity;
-      Idle_State               :        Timer_Capture_Compare_State;
-      Complementary_Polarity   :        Timer_Output_Compare_Polarity;
-      Complementary_Idle_State :        Timer_Capture_Compare_State)
-   is
+     (This                     : in out Timer;
+      Channel                  : Timer_Channel;
+      Mode                     : Timer_Output_Compare_And_PWM_Mode;
+      State                    : Timer_Capture_Compare_State;
+      Pulse                    : UInt32;
+      Polarity                 : Timer_Output_Compare_Polarity;
+      Idle_State               : Timer_Capture_Compare_State;
+      Complementary_Polarity   : Timer_Output_Compare_Polarity;
+      Complementary_Idle_State : Timer_Capture_Compare_State) is
    begin
       --  first disable the channel
       This.CCER (Channel).CCxE := Disable;
 
       Set_Output_Compare_Mode (This, Channel, Mode);
 
-      This.CCER (Channel).CCxE  := State;
+      This.CCER (Channel).CCxE := State;
       This.CCER (Channel).CCxNP := Complementary_Polarity'Enum_Rep;
-      This.CCER (Channel).CCxP  := Polarity'Enum_Rep;
+      This.CCER (Channel).CCxP := Polarity'Enum_Rep;
 
       case Channel is
          when Channel_1 =>
-            This.CR2.Channel_1_Output_Idle_State               := Idle_State;
+            This.CR2.Channel_1_Output_Idle_State := Idle_State;
             This.CR2.Channel_1_Complementary_Output_Idle_State :=
               Complementary_Idle_State;
+
          when Channel_2 =>
-            This.CR2.Channel_2_Output_Idle_State               := Idle_State;
+            This.CR2.Channel_2_Output_Idle_State := Idle_State;
             This.CR2.Channel_2_Complementary_Output_Idle_State :=
               Complementary_Idle_State;
+
          when Channel_3 =>
-            This.CR2.Channel_3_Output_Idle_State               := Idle_State;
+            This.CR2.Channel_3_Output_Idle_State := Idle_State;
             This.CR2.Channel_3_Complementary_Output_Idle_State :=
               Complementary_Idle_State;
+
          when Channel_4 =>
             This.CR2.Channel_4_Output_Idle_State := Idle_State;
       end case;
@@ -708,9 +704,12 @@ package body STM32.Timers is
    -----------------------
 
    procedure Set_Single_Output
-     (This            : in out Timer; Channel : Timer_Channel;
-      Mode :    Timer_Output_Compare_And_PWM_Mode; OC_Clear_Enabled : Boolean;
-      Preload_Enabled :        Boolean; Fast_Enabled : Boolean)
+     (This             : in out Timer;
+      Channel          : Timer_Channel;
+      Mode             : Timer_Output_Compare_And_PWM_Mode;
+      OC_Clear_Enabled : Boolean;
+      Preload_Enabled  : Boolean;
+      Fast_Enabled     : Boolean)
    is
       CCMR_Index       : CCMRx_Index;
       Descriptor_Index : Lower_Half_Index;
@@ -719,22 +718,26 @@ package body STM32.Timers is
    begin
       case Channel is
          when Channel_1 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 1;
+
          when Channel_2 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 2;
+
          when Channel_3 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 1;
+
          when Channel_4 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 2;
       end case;
       Temp := This.CCMR1_2 (CCMR_Index);  -- effectively get CCMR1 or CCMR2
 
       Description :=
-        (OCxMode           => Mode, OCxFast_Enable => Fast_Enabled,
+        (OCxMode           => Mode,
+         OCxFast_Enable    => Fast_Enabled,
          OCxPreload_Enable => Preload_Enabled,
          OCxClear_Enable   => OC_Clear_Enabled);
 
@@ -748,8 +751,9 @@ package body STM32.Timers is
    -----------------------------
 
    procedure Set_Output_Compare_Mode
-     (This : in out Timer; Channel : Timer_Channel;
-      Mode :        Timer_Output_Compare_And_PWM_Mode)
+     (This    : in out Timer;
+      Channel : Timer_Channel;
+      Mode    : Timer_Output_Compare_And_PWM_Mode)
    is
       CCMR_Index       : CCMRx_Index;
       Descriptor_Index : Lower_Half_Index;
@@ -757,16 +761,19 @@ package body STM32.Timers is
    begin
       case Channel is
          when Channel_1 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 1;
+
          when Channel_2 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 2;
+
          when Channel_3 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 1;
+
          when Channel_4 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 2;
       end case;
       Temp := This.CCMR1_2 (CCMR_Index);  -- effectively get CCMR1 or CCMR2
@@ -776,7 +783,7 @@ package body STM32.Timers is
       end if;
 
       Temp.Descriptors (Descriptor_Index).Compare.OCxMode := Mode;
-      This.CCMR1_2 (CCMR_Index)                           := Temp;
+      This.CCMR1_2 (CCMR_Index) := Temp;
    end Set_Output_Compare_Mode;
 
    ----------------------------------
@@ -792,16 +799,19 @@ package body STM32.Timers is
    begin
       case Channel is
          when Channel_1 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 1;
+
          when Channel_2 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 2;
+
          when Channel_3 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 1;
+
          when Channel_4 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 2;
       end case;
       Temp := This.CCMR1_2 (CCMR_Index);  -- effectively get CCMR1 or CCMR2
@@ -822,16 +832,19 @@ package body STM32.Timers is
    begin
       case Channel is
          when Channel_1 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 1;
+
          when Channel_2 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 2;
+
          when Channel_3 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 1;
+
          when Channel_4 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 2;
       end case;
       Temp := This.CCMR1_2 (CCMR_Index);  -- effectively get CCMR1 or CCMR2
@@ -862,22 +875,25 @@ package body STM32.Timers is
    begin
       case Channel is
          when Channel_1 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 1;
+
          when Channel_2 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 2;
+
          when Channel_3 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 1;
+
          when Channel_4 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 2;
       end case;
       Temp := This.CCMR1_2 (CCMR_Index);  -- effectively get CCMR1 or CCMR2
 
       Temp.Descriptors (Descriptor_Index).Compare.OCxPreload_Enable := Enabled;
-      This.CCMR1_2 (CCMR_Index)                                     := Temp;
+      This.CCMR1_2 (CCMR_Index) := Temp;
    end Set_Output_Preload_Enable;
 
    ----------------------------
@@ -893,22 +909,25 @@ package body STM32.Timers is
    begin
       case Channel is
          when Channel_1 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 1;
+
          when Channel_2 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 2;
+
          when Channel_3 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 1;
+
          when Channel_4 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 2;
       end case;
       Temp := This.CCMR1_2 (CCMR_Index);  -- effectively get CCMR1 or CCMR2
 
       Temp.Descriptors (Descriptor_Index).Compare.OCxFast_Enable := Enabled;
-      This.CCMR1_2 (CCMR_Index)                                  := Temp;
+      This.CCMR1_2 (CCMR_Index) := Temp;
    end Set_Output_Fast_Enable;
 
    -----------------------
@@ -924,22 +943,25 @@ package body STM32.Timers is
    begin
       case Channel is
          when Channel_1 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 1;
+
          when Channel_2 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 2;
+
          when Channel_3 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 1;
+
          when Channel_4 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 2;
       end case;
       Temp := This.CCMR1_2 (CCMR_Index);  -- effectively get CCMR1 or CCMR2
 
       Temp.Descriptors (Descriptor_Index).Compare.OCxClear_Enable := Enabled;
-      This.CCMR1_2 (CCMR_Index)                                   := Temp;
+      This.CCMR1_2 (CCMR_Index) := Temp;
    end Set_Clear_Control;
 
    --------------------
@@ -952,7 +974,7 @@ package body STM32.Timers is
       This.CCER (Channel).CCxE := Enable;
 
       --  Trigger an event to initialize preload register
-      Temp_EGR := Temp_EGR or (2**(Timer_Channel'Pos (Channel) + 1));
+      Temp_EGR := Temp_EGR or (2 ** (Timer_Channel'Pos (Channel) + 1));
 
       This.EGR := Temp_EGR;
    end Enable_Channel;
@@ -962,9 +984,9 @@ package body STM32.Timers is
    -------------------------
 
    procedure Set_Output_Polarity
-     (This     : in out Timer; Channel : Timer_Channel;
-      Polarity :        Timer_Output_Compare_Polarity)
-   is
+     (This     : in out Timer;
+      Channel  : Timer_Channel;
+      Polarity : Timer_Output_Compare_Polarity) is
    begin
       This.CCER (Channel).CCxP := Polarity'Enum_Rep;
    end Set_Output_Polarity;
@@ -974,9 +996,9 @@ package body STM32.Timers is
    ---------------------------------------
 
    procedure Set_Output_Complementary_Polarity
-     (This     : in out Timer; Channel : Timer_Channel;
-      Polarity :        Timer_Output_Compare_Polarity)
-   is
+     (This     : in out Timer;
+      Channel  : Timer_Channel;
+      Polarity : Timer_Output_Compare_Polarity) is
    begin
       This.CCER (Channel).CCxNP := Polarity'Enum_Rep;
    end Set_Output_Complementary_Polarity;
@@ -995,8 +1017,7 @@ package body STM32.Timers is
    ---------------------
 
    function Channel_Enabled
-     (This : Timer; Channel : Timer_Channel) return Boolean
-   is
+     (This : Timer; Channel : Timer_Channel) return Boolean is
    begin
       return This.CCER (Channel).CCxE = Enable;
    end Channel_Enabled;
@@ -1006,8 +1027,7 @@ package body STM32.Timers is
    ----------------------------------
 
    procedure Enable_Complementary_Channel
-     (This : in out Timer; Channel : Timer_Channel)
-   is
+     (This : in out Timer; Channel : Timer_Channel) is
    begin
       This.CCER (Channel).CCxNE := Enable;
    end Enable_Complementary_Channel;
@@ -1017,8 +1037,7 @@ package body STM32.Timers is
    -----------------------------------
 
    procedure Disable_Complementary_Channel
-     (This : in out Timer; Channel : Timer_Channel)
-   is
+     (This : in out Timer; Channel : Timer_Channel) is
    begin
       This.CCER (Channel).CCxNE := Disable;
    end Disable_Complementary_Channel;
@@ -1028,8 +1047,7 @@ package body STM32.Timers is
    -----------------------------------
 
    function Complementary_Channel_Enabled
-     (This : Timer; Channel : Timer_Channel) return Boolean
-   is
+     (This : Timer; Channel : Timer_Channel) return Boolean is
    begin
       return This.CCER (Channel).CCxNE = Enable;
    end Complementary_Channel_Enabled;
@@ -1039,8 +1057,7 @@ package body STM32.Timers is
    -----------------------
 
    procedure Set_Compare_Value
-     (This : in out Timer; Channel : Timer_Channel; Word_Value : UInt32)
-   is
+     (This : in out Timer; Channel : Timer_Channel; Word_Value : UInt32) is
    begin
       This.CCR1_4 (Channel) := Word_Value;
       --  Timers 2 and 5 really do have 32-bit capture/compare registers so we
@@ -1052,8 +1069,7 @@ package body STM32.Timers is
    -----------------------
 
    procedure Set_Compare_Value
-     (This : in out Timer; Channel : Timer_Channel; Value : UInt16)
-   is
+     (This : in out Timer; Channel : Timer_Channel; Value : UInt16) is
    begin
       This.CCR1_4 (Channel) := UInt32 (Value);
       --  These capture/compare registers are really only 15-bits wide, except
@@ -1069,8 +1085,7 @@ package body STM32.Timers is
    ---------------------------
 
    function Current_Capture_Value
-     (This : Timer; Channel : Timer_Channel) return UInt32
-   is
+     (This : Timer; Channel : Timer_Channel) return UInt32 is
    begin
       return This.CCR1_4 (Channel);
    end Current_Capture_Value;
@@ -1080,8 +1095,7 @@ package body STM32.Timers is
    ---------------------------
 
    function Current_Capture_Value
-     (This : Timer; Channel : Timer_Channel) return UInt16
-   is
+     (This : Timer; Channel : Timer_Channel) return UInt16 is
    begin
       return UInt16 (This.CCR1_4 (Channel));
    end Current_Capture_Value;
@@ -1091,9 +1105,10 @@ package body STM32.Timers is
    -------------------------------------
 
    procedure Write_Channel_Input_Description
-     (This        : in out Timer; Channel : Timer_Channel;
-      Kind        :        Timer_Input_Capture_Selection;
-      Description :        Channel_Input_Descriptor)
+     (This        : in out Timer;
+      Channel     : Timer_Channel;
+      Kind        : Timer_Input_Capture_Selection;
+      Description : Channel_Input_Descriptor)
    is
       CCMR_Index       : CCMRx_Index;
       Descriptor_Index : Lower_Half_Index;
@@ -1103,30 +1118,35 @@ package body STM32.Timers is
       case Kind is
          when Direct_TI =>
             New_Value := (CCxSelection => Direct_TI, Capture => Description);
+
          when Indirect_TI =>
             New_Value := (CCxSelection => Indirect_TI, Capture => Description);
+
          when TRC =>
             New_Value := (CCxSelection => TRC, Capture => Description);
       end case;
 
       case Channel is
          when Channel_1 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 1;
+
          when Channel_2 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 2;
+
          when Channel_3 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 1;
+
          when Channel_4 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 2;
       end case;
 
       Temp := This.CCMR1_2 (CCMR_Index);  -- effectively get CCMR1 or CCMR2
       Temp.Descriptors (Descriptor_Index) := New_Value;
-      This.CCMR1_2 (CCMR_Index)           := Temp;
+      This.CCMR1_2 (CCMR_Index) := Temp;
    end Write_Channel_Input_Description;
 
    -------------------------
@@ -1134,8 +1154,9 @@ package body STM32.Timers is
    -------------------------
 
    procedure Set_Input_Prescaler
-     (This  : in out Timer; Channel : Timer_Channel;
-      Value :        Timer_Input_Capture_Prescaler)
+     (This    : in out Timer;
+      Channel : Timer_Channel;
+      Value   : Timer_Input_Capture_Prescaler)
    is
       CCMR_Index       : CCMRx_Index;
       Descriptor_Index : Lower_Half_Index;
@@ -1143,22 +1164,25 @@ package body STM32.Timers is
    begin
       case Channel is
          when Channel_1 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 1;
+
          when Channel_2 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 2;
+
          when Channel_3 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 1;
+
          when Channel_4 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 2;
       end case;
       Temp := This.CCMR1_2 (CCMR_Index);  -- effectively get CCMR1 or CCMR2
 
       Temp.Descriptors (Descriptor_Index).Capture.ICxPrescaler := Value;
-      This.CCMR1_2 (CCMR_Index)                                := Temp;
+      This.CCMR1_2 (CCMR_Index) := Temp;
    end Set_Input_Prescaler;
 
    -----------------------------
@@ -1175,16 +1199,19 @@ package body STM32.Timers is
    begin
       case Channel is
          when Channel_1 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 1;
+
          when Channel_2 =>
-            CCMR_Index       := 1;
+            CCMR_Index := 1;
             Descriptor_Index := 2;
+
          when Channel_3 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 1;
+
          when Channel_4 =>
-            CCMR_Index       := 2;
+            CCMR_Index := 2;
             Descriptor_Index := 2;
       end case;
       Temp := This.CCMR1_2 (CCMR_Index);  -- effectively get CCMR1 or CCMR2
@@ -1197,11 +1224,12 @@ package body STM32.Timers is
    -----------------------------
 
    procedure Configure_Channel_Input
-     (This      : in out Timer; Channel : Timer_Channel;
-      Polarity  :        Timer_Input_Capture_Polarity;
-      Selection :        Timer_Input_Capture_Selection;
-      Prescaler :        Timer_Input_Capture_Prescaler;
-      Filter    :        Timer_Input_Capture_Filter)
+     (This      : in out Timer;
+      Channel   : Timer_Channel;
+      Polarity  : Timer_Input_Capture_Polarity;
+      Selection : Timer_Input_Capture_Selection;
+      Prescaler : Timer_Input_Capture_Prescaler;
+      Filter    : Timer_Input_Capture_Filter)
    is
       Input : Channel_Input_Descriptor;
    begin
@@ -1210,19 +1238,23 @@ package body STM32.Timers is
 
       Input := (ICxFilter => Filter, ICxPrescaler => Prescaler);
       Write_Channel_Input_Description
-        (This        => This, Channel => Channel, Kind => Selection,
+        (This        => This,
+         Channel     => Channel,
+         Kind        => Selection,
          Description => Input);
 
       case Polarity is
          when Rising =>
             This.CCER (Channel).CCxNP := 0;
-            This.CCER (Channel).CCxP  := 0;
+            This.CCER (Channel).CCxP := 0;
+
          when Falling =>
             This.CCER (Channel).CCxNP := 0;
-            This.CCER (Channel).CCxP  := 1;
+            This.CCER (Channel).CCxP := 1;
+
          when Both_Edges =>
             This.CCER (Channel).CCxNP := 1;
-            This.CCER (Channel).CCxP  := 1;
+            This.CCER (Channel).CCxP := 1;
       end case;
 
       This.CCER (Channel).CCxE := Enable;
@@ -1233,11 +1265,12 @@ package body STM32.Timers is
    ---------------------------------
 
    procedure Configure_Channel_Input_PWM
-     (This      : in out Timer; Channel : Timer_Channel;
-      Selection :        Timer_Input_Capture_Selection;
-      Polarity  :        Timer_Input_Capture_Polarity;
-      Prescaler :        Timer_Input_Capture_Prescaler;
-      Filter    :        Timer_Input_Capture_Filter)
+     (This      : in out Timer;
+      Channel   : Timer_Channel;
+      Selection : Timer_Input_Capture_Selection;
+      Polarity  : Timer_Input_Capture_Polarity;
+      Prescaler : Timer_Input_Capture_Prescaler;
+      Filter    : Timer_Input_Capture_Filter)
    is
       Opposite_Polarity  : Timer_Input_Capture_Polarity;
       Opposite_Selection : Timer_Input_Capture_Selection;
@@ -1261,14 +1294,22 @@ package body STM32.Timers is
            (This, Channel_1, Polarity, Selection, Prescaler, Filter);
 
          Configure_Channel_Input
-           (This, Channel_2, Opposite_Polarity, Opposite_Selection, Prescaler,
+           (This,
+            Channel_2,
+            Opposite_Polarity,
+            Opposite_Selection,
+            Prescaler,
             Filter);
       else
          Configure_Channel_Input
            (This, Channel_2, Polarity, Selection, Prescaler, Filter);
 
          Configure_Channel_Input
-           (This, Channel_1, Opposite_Polarity, Opposite_Selection, Prescaler,
+           (This,
+            Channel_1,
+            Opposite_Polarity,
+            Opposite_Selection,
+            Prescaler,
             Filter);
       end if;
 
@@ -1316,19 +1357,22 @@ package body STM32.Timers is
    --------------------
 
    procedure Configure_BDTR
-     (This : in out Timer; Automatic_Output_Enabled : Boolean;
-      Break_Polarity :        Timer_Break_Polarity; Break_Enabled : Boolean;
-      Off_State_Selection_Run_Mode : Bit; Off_State_Selection_Idle_Mode : Bit;
-      Lock_Configuration :        Timer_Lock_Level; Deadtime_Generator : UInt8)
-   is
+     (This                          : in out Timer;
+      Automatic_Output_Enabled      : Boolean;
+      Break_Polarity                : Timer_Break_Polarity;
+      Break_Enabled                 : Boolean;
+      Off_State_Selection_Run_Mode  : Bit;
+      Off_State_Selection_Idle_Mode : Bit;
+      Lock_Configuration            : Timer_Lock_Level;
+      Deadtime_Generator            : UInt8) is
    begin
-      This.BDTR.Automatic_Output_Enabled      := Automatic_Output_Enabled;
-      This.BDTR.Break_Polarity                := Break_Polarity;
-      This.BDTR.Break_Enable                  := Break_Enabled;
-      This.BDTR.Off_State_Selection_Run_Mode  := Off_State_Selection_Run_Mode;
+      This.BDTR.Automatic_Output_Enabled := Automatic_Output_Enabled;
+      This.BDTR.Break_Polarity := Break_Polarity;
+      This.BDTR.Break_Enable := Break_Enabled;
+      This.BDTR.Off_State_Selection_Run_Mode := Off_State_Selection_Run_Mode;
       This.BDTR.Off_State_Selection_Idle_Mode := Off_State_Selection_Idle_Mode;
-      This.BDTR.Lock                          := Lock_Configuration;
-      This.BDTR.Deadtime_Generator            := Deadtime_Generator;
+      This.BDTR.Lock := Lock_Configuration;
+      This.BDTR.Deadtime_Generator := Deadtime_Generator;
    end Configure_BDTR;
 
    ----------------------------------
@@ -1336,8 +1380,7 @@ package body STM32.Timers is
    ----------------------------------
 
    procedure Configure_Timer_14_Remapping
-     (This : in out Timer; Option : Timer_14_Remapping_Options)
-   is
+     (This : in out Timer; Option : Timer_14_Remapping_Options) is
    begin
       This.Options.TI1_RMP := Option;
    end Configure_Timer_14_Remapping;
@@ -1347,45 +1390,53 @@ package body STM32.Timers is
    ---------------------------------
 
    procedure Configure_Encoder_Interface
-     (This         : in out Timer; Mode : Timer_Encoder_Mode;
-      IC1_Polarity :        Timer_Input_Capture_Polarity;
-      IC2_Polarity :        Timer_Input_Capture_Polarity)
-   is
+     (This         : in out Timer;
+      Mode         : Timer_Encoder_Mode;
+      IC1_Polarity : Timer_Input_Capture_Polarity;
+      IC2_Polarity : Timer_Input_Capture_Polarity) is
    begin
       This.SMCR.Slave_Mode_Selection := Mode;
 
       Write_Channel_Input_Description
-        (This, Channel => Channel_1, Kind => Direct_TI,
-         Description   =>
+        (This,
+         Channel     => Channel_1,
+         Kind        => Direct_TI,
+         Description =>
            Channel_Input_Descriptor'(ICxFilter => 0, ICxPrescaler => Div1));
 
       Write_Channel_Input_Description
-        (This, Channel => Channel_2, Kind => Direct_TI,
-         Description   =>
+        (This,
+         Channel     => Channel_2,
+         Kind        => Direct_TI,
+         Description =>
            Channel_Input_Descriptor'(ICxFilter => 0, ICxPrescaler => Div1));
 
       case IC1_Polarity is
          when Rising =>
             This.CCER (Channel_1).CCxNP := 0;
-            This.CCER (Channel_1).CCxP  := 0;
+            This.CCER (Channel_1).CCxP := 0;
+
          when Falling =>
             This.CCER (Channel_1).CCxNP := 0;
-            This.CCER (Channel_1).CCxP  := 1;
+            This.CCER (Channel_1).CCxP := 1;
+
          when Both_Edges =>
             This.CCER (Channel_1).CCxNP := 1;
-            This.CCER (Channel_1).CCxP  := 1;
+            This.CCER (Channel_1).CCxP := 1;
       end case;
 
       case IC2_Polarity is
          when Rising =>
             This.CCER (Channel_2).CCxNP := 0;
-            This.CCER (Channel_2).CCxP  := 0;
+            This.CCER (Channel_2).CCxP := 0;
+
          when Falling =>
             This.CCER (Channel_2).CCxNP := 0;
-            This.CCER (Channel_2).CCxP  := 1;
+            This.CCER (Channel_2).CCxP := 1;
+
          when Both_Edges =>
             This.CCER (Channel_2).CCxNP := 1;
-            This.CCER (Channel_2).CCxP  := 1;
+            This.CCER (Channel_2).CCxP := 1;
       end case;
    end Configure_Encoder_Interface;
 

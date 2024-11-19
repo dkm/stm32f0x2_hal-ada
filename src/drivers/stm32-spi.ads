@@ -43,7 +43,7 @@
 --
 --  SPDX-License-Identifier: BSD-3-Clause
 
---  Copyright 2022 (C) Marc Poulhiès
+--  Copyright 2022 (C) Marc PoulhiÃ¨s
 --  This file has been adapted for the STM32F0 (ARM Cortex M4)
 --  Beware that most of this has been reused from Ada Drivers Library
 --  (https://github.com/AdaCore/Ada_Drivers_Library) and has been
@@ -57,8 +57,8 @@ package STM32.SPI is
 
    type Internal_SPI_Port is private;
 
-   type SPI_Port (Periph : not null access Internal_SPI_Port) is
-     limited new HAL.SPI.SPI_Port with private;
+   type SPI_Port (Periph : not null access Internal_SPI_Port) is limited
+     new HAL.SPI.SPI_Port with private;
 
    type SPI_Data_Direction is
      (D2Lines_FullDuplex, D2Lines_RxOnly, D1Line_Rx, D1Line_Tx);
@@ -98,43 +98,43 @@ package STM32.SPI is
 
    procedure Send (This : in out SPI_Port; Data : UInt16);
 
-   function Data (This : SPI_Port) return UInt16 with
-      Inline;
+   function Data (This : SPI_Port) return UInt16
+   with Inline;
 
    procedure Send (This : in out SPI_Port; Data : UInt8);
 
-   function Data (This : SPI_Port) return UInt8 with
-      Inline;
+   function Data (This : SPI_Port) return UInt8
+   with Inline;
 
-   function Is_Busy (This : SPI_Port) return Boolean with
-      Inline;
+   function Is_Busy (This : SPI_Port) return Boolean
+   with Inline;
 
-   function Rx_Is_Empty (This : SPI_Port) return Boolean with
-      Inline;
+   function Rx_Is_Empty (This : SPI_Port) return Boolean
+   with Inline;
 
-   function Tx_Is_Empty (This : SPI_Port) return Boolean with
-      Inline;
+   function Tx_Is_Empty (This : SPI_Port) return Boolean
+   with Inline;
 
-   function Busy (This : SPI_Port) return Boolean with
-      Inline;
+   function Busy (This : SPI_Port) return Boolean
+   with Inline;
 
-   function Channel_Side_Indicated (This : SPI_Port) return Boolean with
-      Inline;
+   function Channel_Side_Indicated (This : SPI_Port) return Boolean
+   with Inline;
 
-   function Underrun_Indicated (This : SPI_Port) return Boolean with
-      Inline;
+   function Underrun_Indicated (This : SPI_Port) return Boolean
+   with Inline;
 
-   function CRC_Error_Indicated (This : SPI_Port) return Boolean with
-      Inline;
+   function CRC_Error_Indicated (This : SPI_Port) return Boolean
+   with Inline;
 
-   function Mode_Fault_Indicated (This : SPI_Port) return Boolean with
-      Inline;
+   function Mode_Fault_Indicated (This : SPI_Port) return Boolean
+   with Inline;
 
-   function Overrun_Indicated (This : SPI_Port) return Boolean with
-      Inline;
+   function Overrun_Indicated (This : SPI_Port) return Boolean
+   with Inline;
 
-   function Frame_Fmt_Error_Indicated (This : SPI_Port) return Boolean with
-      Inline;
+   function Frame_Fmt_Error_Indicated (This : SPI_Port) return Boolean
+   with Inline;
 
    procedure Clear_Overrun (This : SPI_Port);
 
@@ -151,39 +151,52 @@ package STM32.SPI is
    --  The following I/O routines implement the higher level functionality for
    --  CRC and data direction, among others.
 
-   type UInt8_Buffer is array (Natural range <>) of UInt8 with
-      Alignment => 2;
+   type UInt8_Buffer is array (Natural range <>) of UInt8 with Alignment => 2;
    --  The alignment is set to 2 because we treat component pairs as half_word
    --  values when sending/receiving in 16-bit mode.
 
    --  Blocking
 
-   overriding function Data_Size
-     (This : SPI_Port) return HAL.SPI.SPI_Data_Size;
+   overriding
+   function Data_Size (This : SPI_Port) return HAL.SPI.SPI_Data_Size;
 
-   overriding procedure Transmit
-     (This   : in out SPI_Port; Data : HAL.SPI.SPI_Data_8b;
-      Status :    out HAL.SPI.SPI_Status; Timeout : Natural := 1_000);
+   overriding
+   procedure Transmit
+     (This    : in out SPI_Port;
+      Data    : HAL.SPI.SPI_Data_8b;
+      Status  : out HAL.SPI.SPI_Status;
+      Timeout : Natural := 1_000);
 
-   overriding procedure Transmit
-     (This   : in out SPI_Port; Data : HAL.SPI.SPI_Data_16b;
-      Status :    out HAL.SPI.SPI_Status; Timeout : Natural := 1_000);
+   overriding
+   procedure Transmit
+     (This    : in out SPI_Port;
+      Data    : HAL.SPI.SPI_Data_16b;
+      Status  : out HAL.SPI.SPI_Status;
+      Timeout : Natural := 1_000);
 
    procedure Transmit (This : in out SPI_Port; Outgoing : UInt8);
 
-   overriding procedure Receive
-     (This   : in out SPI_Port; Data : out HAL.SPI.SPI_Data_8b;
-      Status :    out HAL.SPI.SPI_Status; Timeout : Natural := 1_000);
+   overriding
+   procedure Receive
+     (This    : in out SPI_Port;
+      Data    : out HAL.SPI.SPI_Data_8b;
+      Status  : out HAL.SPI.SPI_Status;
+      Timeout : Natural := 1_000);
 
-   overriding procedure Receive
-     (This   : in out SPI_Port; Data : out HAL.SPI.SPI_Data_16b;
-      Status :    out HAL.SPI.SPI_Status; Timeout : Natural := 1_000);
+   overriding
+   procedure Receive
+     (This    : in out SPI_Port;
+      Data    : out HAL.SPI.SPI_Data_16b;
+      Status  : out HAL.SPI.SPI_Status;
+      Timeout : Natural := 1_000);
 
    procedure Receive (This : in out SPI_Port; Incoming : out UInt8);
 
    procedure Transmit_Receive
-     (This     : in out SPI_Port; Outgoing : UInt8_Buffer;
-      Incoming :    out UInt8_Buffer; Size : Positive);
+     (This     : in out SPI_Port;
+      Outgoing : UInt8_Buffer;
+      Incoming : out UInt8_Buffer;
+      Size     : Positive);
 
    procedure Transmit_Receive
      (This : in out SPI_Port; Outgoing : UInt8; Incoming : out UInt8);
@@ -197,16 +210,21 @@ private
 
    type Internal_SPI_Port is new STM32_SVD.SPI.SPI_Peripheral;
 
-   type SPI_Port (Periph : not null access Internal_SPI_Port)
-   is limited new HAL.SPI.SPI_Port with null record;
+   type SPI_Port (Periph : not null access Internal_SPI_Port) is limited
+     new HAL.SPI.SPI_Port
+   with null record;
 
    procedure Send_Receive_16bit_Mode
-     (This     : in out SPI_Port; Outgoing : UInt8_Buffer;
-      Incoming :    out UInt8_Buffer; Size : Positive);
+     (This     : in out SPI_Port;
+      Outgoing : UInt8_Buffer;
+      Incoming : out UInt8_Buffer;
+      Size     : Positive);
 
    procedure Send_Receive_8bit_Mode
-     (This     : in out SPI_Port; Outgoing : UInt8_Buffer;
-      Incoming :    out UInt8_Buffer; Size : Positive);
+     (This     : in out SPI_Port;
+      Outgoing : UInt8_Buffer;
+      Incoming : out UInt8_Buffer;
+      Size     : Positive);
 
    procedure Send_16bit_Mode
      (This : in out SPI_Port; Outgoing : HAL.SPI.SPI_Data_16b);

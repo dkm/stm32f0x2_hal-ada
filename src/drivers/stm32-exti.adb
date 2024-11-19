@@ -44,7 +44,7 @@
 --  This file provides register definitions for the STM32F0 (ARM Cortex M4)
 --  microcontrollers from ST Microelectronics.
 
---  Copyright 2022 (C) Marc Poulhiès
+--  Copyright 2022 (C) Marc PoulhiÃ¨s
 --  This file has been adapted for the STM32F0 (ARM Cortex M4)
 --  Beware that most of this has been reused from Ada Drivers Library
 --  (https://github.com/AdaCore/Ada_Drivers_Library) and has been
@@ -63,7 +63,7 @@ package body STM32.EXTI is
    is
       Index : constant Natural := External_Line_Number'Pos (Line);
    begin
-      EXTI_Periph.IMR.MR.Arr (Index)  := True;
+      EXTI_Periph.IMR.MR.Arr (Index) := True;
       EXTI_Periph.RTSR.TR.Arr (Index) :=
         Trigger in Interrupt_Rising_Edge | Interrupt_Rising_Falling_Edge;
       EXTI_Periph.FTSR.TR.Arr (Index) :=
@@ -77,7 +77,7 @@ package body STM32.EXTI is
    procedure Disable_External_Interrupt (Line : External_Line_Number) is
       Index : constant Natural := External_Line_Number'Pos (Line);
    begin
-      EXTI_Periph.IMR.MR.Arr (Index)  := False;
+      EXTI_Periph.IMR.MR.Arr (Index) := False;
       EXTI_Periph.RTSR.TR.Arr (Index) := False;
       EXTI_Periph.FTSR.TR.Arr (Index) := False;
    end Disable_External_Interrupt;
@@ -91,7 +91,7 @@ package body STM32.EXTI is
    is
       Index : constant Natural := External_Line_Number'Pos (Line);
    begin
-      EXTI_Periph.EMR.MR.Arr (Index)  := True;
+      EXTI_Periph.EMR.MR.Arr (Index) := True;
       EXTI_Periph.RTSR.TR.Arr (Index) :=
         Trigger in Interrupt_Rising_Edge | Interrupt_Rising_Falling_Edge;
       EXTI_Periph.FTSR.TR.Arr (Index) :=
@@ -105,7 +105,7 @@ package body STM32.EXTI is
    procedure Disable_External_Event (Line : External_Line_Number) is
       Index : constant Natural := External_Line_Number'Pos (Line);
    begin
-      EXTI_Periph.EMR.MR.Arr (Index)  := False;
+      EXTI_Periph.EMR.MR.Arr (Index) := False;
       EXTI_Periph.RTSR.TR.Arr (Index) := False;
       EXTI_Periph.FTSR.TR.Arr (Index) := False;
    end Disable_External_Event;
@@ -124,8 +124,7 @@ package body STM32.EXTI is
    --------------------------------
 
    function External_Interrupt_Pending
-     (Line : External_Line_Number) return Boolean
-   is
+     (Line : External_Line_Number) return Boolean is
    begin
       if Line <= EXTI_Line_17 then
          return EXTI_Periph.PR.PIF.Arr (External_Line_Number'Pos (Line));

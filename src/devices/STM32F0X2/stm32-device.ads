@@ -49,40 +49,28 @@ package STM32.Device is
    procedure Enable_Clock (Point : GPIO_Point);
    procedure Enable_Clock (Points : GPIO_Points);
 
-   procedure Reset (This : aliased in out GPIO_Port) with
-      Inline;
-   procedure Reset (Point : GPIO_Point) with
-      Inline;
-   procedure Reset (Points : GPIO_Points) with
-      Inline;
+   procedure Reset (This : aliased in out GPIO_Port)
+   with Inline;
+   procedure Reset (Point : GPIO_Point)
+   with Inline;
+   procedure Reset (Points : GPIO_Points)
+   with Inline;
 
-   function GPIO_Port_Representation (Port : GPIO_Port) return UInt4 with
-      Inline;
+   function GPIO_Port_Representation (Port : GPIO_Port) return UInt4
+   with Inline;
 
-   GPIO_A : aliased GPIO_Port with
-      Import,
-      Volatile,
-      Address => GPIOA_Base;
-   GPIO_B : aliased GPIO_Port with
-      Import,
-      Volatile,
-      Address => GPIOB_Base;
-   GPIO_C : aliased GPIO_Port with
-      Import,
-      Volatile,
-      Address => GPIOC_Base;
-   GPIO_D : aliased GPIO_Port with
-      Import,
-      Volatile,
-      Address => GPIOD_Base;
-   GPIO_E : aliased GPIO_Port with
-      Import,
-      Volatile,
-      Address => GPIOE_Base;
-   GPIO_F : aliased GPIO_Port with
-      Import,
-      Volatile,
-      Address => GPIOF_Base;
+   GPIO_A : aliased GPIO_Port
+   with Import, Volatile, Address => GPIOA_Base;
+   GPIO_B : aliased GPIO_Port
+   with Import, Volatile, Address => GPIOB_Base;
+   GPIO_C : aliased GPIO_Port
+   with Import, Volatile, Address => GPIOC_Base;
+   GPIO_D : aliased GPIO_Port
+   with Import, Volatile, Address => GPIOD_Base;
+   GPIO_E : aliased GPIO_Port
+   with Import, Volatile, Address => GPIOE_Base;
+   GPIO_F : aliased GPIO_Port
+   with Import, Volatile, Address => GPIOF_Base;
 
    PA0  : aliased GPIO_Point := (GPIO_A'Access, Pin_0);
    PA1  : aliased GPIO_Point := (GPIO_A'Access, Pin_1);
@@ -240,22 +228,14 @@ package STM32.Device is
 
    UDC : aliased STM32.USB_Device.UDC;
 
-   Internal_USART_1 : aliased Internal_USART with
-      Import,
-      Volatile,
-      Address => USART1_Base;
-   Internal_USART_2 : aliased Internal_USART with
-      Import,
-      Volatile,
-      Address => USART2_Base;
-   Internal_USART_3 : aliased Internal_USART with
-      Import,
-      Volatile,
-      Address => USART3_Base;
-   Internal_USART_4 : aliased Internal_USART with
-      Import,
-      Volatile,
-      Address => USART4_Base;
+   Internal_USART_1 : aliased Internal_USART
+   with Import, Volatile, Address => USART1_Base;
+   Internal_USART_2 : aliased Internal_USART
+   with Import, Volatile, Address => USART2_Base;
+   Internal_USART_3 : aliased Internal_USART
+   with Import, Volatile, Address => USART3_Base;
+   Internal_USART_4 : aliased Internal_USART
+   with Import, Volatile, Address => USART4_Base;
 
    USART_1 : aliased USART (Internal_USART_1'Access);
    USART_2 : aliased USART (Internal_USART_2'Access);
@@ -266,44 +246,26 @@ package STM32.Device is
 
    procedure Reset (This : aliased in out USART);
 
-   Timer_1 : aliased Timer with
-      Import,
-      Volatile,
-      Address => TIM1_Base;
-   Timer_2 : aliased Timer with
-      Import,
-      Volatile,
-      Address => TIM2_Base;
-   Timer_3 : aliased Timer with
-      Import,
-      Volatile,
-      Address => TIM3_Base;
+   Timer_1 : aliased Timer
+   with Import, Volatile, Address => TIM1_Base;
+   Timer_2 : aliased Timer
+   with Import, Volatile, Address => TIM2_Base;
+   Timer_3 : aliased Timer
+   with Import, Volatile, Address => TIM3_Base;
 
-   Timer_14 : aliased Timer with
-      Import,
-      Volatile,
-      Address => TIM14_Base;
-   Timer_15 : aliased Timer with
-      Import,
-      Volatile,
-      Address => TIM15_Base;
-   Timer_16 : aliased Timer with
-      Import,
-      Volatile,
-      Address => TIM16_Base;
-   Timer_17 : aliased Timer with
-      Import,
-      Volatile,
-      Address => TIM17_Base;
+   Timer_14 : aliased Timer
+   with Import, Volatile, Address => TIM14_Base;
+   Timer_15 : aliased Timer
+   with Import, Volatile, Address => TIM15_Base;
+   Timer_16 : aliased Timer
+   with Import, Volatile, Address => TIM16_Base;
+   Timer_17 : aliased Timer
+   with Import, Volatile, Address => TIM17_Base;
 
-   Timer_6 : aliased Timer with
-      Import,
-      Volatile,
-      Address => TIM6_Base;
-   Timer_7 : aliased Timer with
-      Import,
-      Volatile,
-      Address => TIM7_Base;
+   Timer_6 : aliased Timer
+   with Import, Volatile, Address => TIM6_Base;
+   Timer_7 : aliased Timer
+   with Import, Volatile, Address => TIM7_Base;
 
    procedure Enable_Clock (This : in out Timer);
 
